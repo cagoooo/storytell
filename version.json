@@ -1,5 +1,5 @@
 {
-  "version": "v0.6.0",
+  "version": "v0.6.2",
   "buildTime": "2026-04-27",
-  "notes": "🎨 Gemini Image (Nano Banana) 直接生圖：每章一鍵生圖 / 整本順便生圖。產出 base64 直接內嵌進 Apps Script，不用上傳 Drive。"
+  "notes": "v0.6.2 體感優化：首次造訪歡迎卡（引導看 5 分鐘上手 / 直接設定 AI Key）+ 儲存空間用量顯示 + 4MB / 3MB 兩段警告"
 }

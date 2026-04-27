@@ -242,6 +242,23 @@
   details summary{cursor:pointer;color:var(--accent);font-weight:600;padding:6px 0;font-size:14px}
   details[open] summary{margin-bottom:8px}
 
+  /* ===== Welcome card (首次造訪) ===== */
+  .welcome-card{background:linear-gradient(135deg,#fef3c7 0%,#fce7f3 50%,#dbeafe 100%);border:2px solid #fbbf24;border-radius:18px;padding:20px 22px;margin:14px 0;position:relative;animation:welcomeIn .4s ease}
+  body.dark .welcome-card{background:linear-gradient(135deg,#3a2f0a 0%,#3a1f2a 50%,#1e2a4a 100%);border-color:#fbbf24}
+  .welcome-card h2{margin:0 0 6px;font-size:18px;color:var(--accent)}
+  .welcome-card p{margin:6px 0;font-size:14px;color:#5b21b6}
+  body.dark .welcome-card p{color:#e9d5ff}
+  .welcome-card .wc-cta{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+  .welcome-card .wc-cta .btn{font-size:13px;padding:8px 14px}
+  .welcome-card .wc-close{position:absolute;top:10px;right:12px;background:transparent;border:none;font-size:18px;cursor:pointer;color:var(--sub);width:30px;height:30px;border-radius:50%}
+  .welcome-card .wc-close:hover{background:rgba(0,0,0,.06)}
+  @keyframes welcomeIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
+
+  /* 儲存空間提示 */
+  .storage-warn{background:#fee2e2;border:1px solid #fca5a5;color:#7f1d1d;padding:8px 12px;border-radius:8px;font-size:12px;margin-top:8px;display:none}
+  .storage-warn.show{display:block}
+  body.dark .storage-warn{background:#4c1d24;color:#fca5a5}
+
   /* ===== AI / Gemini panel ===== */
   .ai-bar{background:linear-gradient(135deg,#dbeafe 0%,#fef3c7 100%);border:2px solid #fbbf24;border-radius:14px;padding:14px;margin:14px 0}
   body.dark .ai-bar{background:linear-gradient(135deg,#1e2a4a 0%,#3a2f0a 100%);border-color:#a78bfa}
@@ -397,8 +414,20 @@
   <header>
     <h1>📚 繪本 → Google 表單 一條龍工作坊</h1>
     <p>把 Gemini 畫的繪本，變成有圖片、有解謎、可發音的 Google 表單測驗</p>
-    <span class="tag">v0.6 · 🎨 AI 生圖 · 🤖 整本生成 · PWA · 7 題型</span>
+    <span class="tag">v0.6.2 · 🎨 AI 生圖 · 🤖 整本生成 · PWA · 7 題型</span>
   </header>
+
+  <div class="welcome-card" id="welcomeCard" style="display:none">
+    <button class="wc-close" id="btn-dismissWelcome" aria-label="關閉">✕</button>
+    <h2>👋 第一次來嗎？</h2>
+    <p>這是「繪本 → Google 表單」一條龍工作坊。打主題 → AI 生整本繪本 + 圖 + 題目 → 一鍵變成 Google 表單。</p>
+    <p><strong>建議路徑</strong>：先看 5 分鐘上手指南、再回來這頁實作一次。</p>
+    <div class="wc-cta">
+      <a class="btn" href="快速上手.html" target="_blank" rel="noopener noreferrer">📖 看 5 分鐘上手</a>
+      <button class="btn ghost" id="btn-startWithAI">🤖 直接設定 AI Key</button>
+      <button class="btn gray" id="btn-skipWelcome">先看看就好</button>
+    </div>
+  </div>
 
   <div class="proj-bar">
     <div class="proj-row">
@@ -414,6 +443,7 @@
       </div>
     </div>
     <div class="proj-meta" id="projMeta"></div>
+    <div class="storage-warn" id="storageWarn"></div>
     <input type="file" id="projFile" accept="application/json,.json" hidden>
   </div>
 
@@ -1093,6 +1123,7 @@ function init(){
   if(state.formUrl) updateQR();
 
   updateProgress();
+  maybeShowWelcome();
 }
 
 function wireUI(){
@@ -1166,6 +1197,11 @@ function wireUI(){
   // Update banner
   on('btn-applyUpdate', 'click', applyUpdate);
   on('btn-dismissUpdate', 'click', () => document.getElementById('updateBanner').classList.remove('show'));
+
+  // Welcome card
+  on('btn-dismissWelcome', 'click', dismissWelcome);
+  on('btn-skipWelcome', 'click', dismissWelcome);
+  on('btn-startWithAI', 'click', startWithAI);
 }
 
 function on(id, ev, fn){
@@ -1381,7 +1417,43 @@ function renderProjectBar(){
   });
   const updated = state.updatedAt ? new Date(state.updatedAt).toLocaleString('zh-TW',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '剛剛';
   const pageCount = (state.editor.pages||[]).length;
-  document.getElementById('projMeta').textContent = `📅 上次編輯：${updated}　·　📝 ${pageCount} 章　·　共 ${meta.projects.length} 本繪本`;
+  const sizeMB = parseFloat(estimateStorageMB());
+  document.getElementById('projMeta').textContent = `📅 上次編輯：${updated}　·　📝 ${pageCount} 章　·　共 ${meta.projects.length} 本繪本　·　💾 ${sizeMB} MB`;
+  // 儲存空間警告（localStorage 一般 5 MB 上限）
+  const warn = document.getElementById('storageWarn');
+  if(sizeMB > 4){
+    warn.textContent = '⚠ localStorage 已用 ' + sizeMB + ' MB（上限約 5 MB），建議匯出 JSON 備份後刪掉舊繪本，或減少 AI 生圖數量。';
+    warn.classList.add('show');
+  } else if(sizeMB > 3){
+    warn.textContent = '⚠ 儲存空間用了 ' + sizeMB + ' MB / 5 MB，注意爆表風險。';
+    warn.style.background = '#fef3c7'; warn.style.color = '#78350f'; warn.style.borderColor = '#fbbf24';
+    warn.classList.add('show');
+  } else {
+    warn.classList.remove('show');
+  }
+}
+
+// 首次造訪歡迎卡
+function maybeShowWelcome(){
+  if(meta.seenWelcome) return;
+  // 只在「真的全新」(沒任何資料) 時顯示
+  const isEmpty = meta.projects.length === 1 && !state.editor.pages.length && !state.checks.s1 && !state.urls.pub;
+  if(!isEmpty) { meta.seenWelcome = true; save(); return; }
+  document.getElementById('welcomeCard').style.display = '';
+}
+
+function dismissWelcome(){
+  document.getElementById('welcomeCard').style.display = 'none';
+  meta.seenWelcome = true;
+  save();
+}
+
+function startWithAI(){
+  dismissWelcome();
+  const aiBar = document.getElementById('aiBar');
+  aiBar.open = true;
+  aiBar.scrollIntoView({behavior:'smooth', block:'start'});
+  setTimeout(() => document.getElementById('geminiKey').focus(), 400);
 }
 
 function switchProject(id){
