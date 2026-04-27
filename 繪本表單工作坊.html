@@ -242,6 +242,42 @@
   details summary{cursor:pointer;color:var(--accent);font-weight:600;padding:6px 0;font-size:14px}
   details[open] summary{margin-bottom:8px}
 
+  /* ===== AI / Gemini panel ===== */
+  .ai-bar{background:linear-gradient(135deg,#dbeafe 0%,#fef3c7 100%);border:2px solid #fbbf24;border-radius:14px;padding:14px;margin:14px 0}
+  body.dark .ai-bar{background:linear-gradient(135deg,#1e2a4a 0%,#3a2f0a 100%);border-color:#a78bfa}
+  .ai-bar summary{font-weight:700;cursor:pointer;font-size:15px;list-style:none;display:flex;align-items:center;gap:8px}
+  .ai-bar summary::-webkit-details-marker{display:none}
+  .ai-bar summary::before{content:'▶';font-size:11px;transition:.2s;color:var(--accent)}
+  .ai-bar[open] summary::before{transform:rotate(90deg)}
+  .ai-bar .ai-status{font-size:12px;color:var(--sub);margin-left:auto;font-weight:400}
+  .ai-bar .ai-content{margin-top:12px}
+  .ai-bar .ai-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .ai-bar input,.ai-bar select{font-size:13px;padding:8px 10px}
+  .ai-bar label{margin:0 0 4px;font-size:12px;color:var(--sub);font-weight:600;display:block}
+  @media (max-width:600px){ .ai-bar .ai-grid{grid-template-columns:1fr} }
+
+  .ai-gen-box{background:linear-gradient(135deg,#ddd6fe,#fce7f3);border:2px solid #a78bfa;border-radius:12px;padding:14px;margin-bottom:12px}
+  body.dark .ai-gen-box{background:linear-gradient(135deg,#2a1f48,#3a1f2a);border-color:#a78bfa}
+  .ai-gen-box summary{font-weight:700;cursor:pointer;font-size:14px;list-style:none;display:flex;align-items:center;gap:8px;color:var(--accent)}
+  .ai-gen-box summary::-webkit-details-marker{display:none}
+  .ai-gen-box summary::before{content:'▶';font-size:11px;transition:.2s}
+  .ai-gen-box[open] summary::before{transform:rotate(90deg)}
+  .ai-gen-grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(140px, 1fr));gap:8px;margin:10px 0}
+
+  .ai-row-btns{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px;padding:6px;background:rgba(167,139,250,.08);border-radius:6px}
+  body.dark .ai-row-btns{background:rgba(167,139,250,.15)}
+  .ai-mini{background:linear-gradient(135deg,#a78bfa,#ec4899);color:white;border:none;padding:5px 10px;border-radius:6px;font-size:11px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:3px;font-weight:600}
+  .ai-mini:hover{transform:translateY(-1px);box-shadow:0 4px 10px rgba(167,139,250,.4)}
+  .ai-mini:disabled{opacity:.5;cursor:wait}
+  .ai-mini.busy::before{content:'⏳ ';animation:spin 1s linear infinite;display:inline-block}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  .ai-loading{display:flex;align-items:center;gap:10px;padding:12px;background:var(--soft);border-radius:8px;margin:8px 0;font-size:13px}
+  .ai-loading .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);animation:bounce 1.4s infinite ease-in-out}
+  .ai-loading .dot:nth-child(2){animation-delay:.2s}
+  .ai-loading .dot:nth-child(3){animation-delay:.4s}
+  @keyframes bounce{0%,80%,100%{transform:scale(.5);opacity:.5}40%{transform:scale(1);opacity:1}}
+
   /* ===== Update Banner ===== */
   .update-banner{position:fixed;top:0;left:0;right:0;background:linear-gradient(135deg,#10b981,#3b82f6);color:white;padding:12px 16px;text-align:center;font-size:14px;z-index:2000;display:none;box-shadow:0 4px 14px rgba(0,0,0,.2)}
   .update-banner.show{display:block;animation:slideDown .3s ease}
@@ -354,7 +390,7 @@
   <header>
     <h1>📚 繪本 → Google 表單 一條龍工作坊</h1>
     <p>把 Gemini 畫的繪本，變成有圖片、有解謎、可發音的 Google 表單測驗</p>
-    <span class="tag">v0.4 · PWA · 拖曳排序 · 深色模式 · 多繪本 · 7 題型</span>
+    <span class="tag">v0.5 · 🤖 Gemini AI · PWA · 多繪本 · 7 題型 · 深色模式</span>
   </header>
 
   <div class="proj-bar">
@@ -373,6 +409,40 @@
     <div class="proj-meta" id="projMeta"></div>
     <input type="file" id="projFile" accept="application/json,.json" hidden>
   </div>
+
+  <details class="ai-bar" id="aiBar">
+    <summary>
+      🤖 Gemini AI 助手
+      <span class="ai-status" id="aiStatus">未設定</span>
+    </summary>
+    <div class="ai-content">
+      <div class="info" style="font-size:13px">
+        🔑 <strong>BYOK（Bring Your Own Key）</strong>：你貼自己的 Gemini API Key，<strong>只存在你的瀏覽器，永不離開這台電腦</strong>。
+        免費 Key 拿這裡：<a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">Google AI Studio</a>（免費層 gemini-2.5-flash 每天 1500 次請求）
+      </div>
+      <div class="ai-grid">
+        <div>
+          <label>Gemini API Key</label>
+          <input type="password" id="geminiKey" placeholder="AIzaSy..." autocomplete="off" />
+        </div>
+        <div>
+          <label>使用模型</label>
+          <select id="geminiModel">
+            <option value="gemini-2.5-flash">gemini-2.5-flash（推薦・快又免費）</option>
+            <option value="gemini-2.5-pro">gemini-2.5-pro（高品質・每日 50 次）</option>
+            <option value="gemini-2.5-flash-lite">gemini-2.5-flash-lite（最快）</option>
+          </select>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn small green" id="btn-saveGemini">💾 儲存</button>
+        <button class="btn small ghost" id="btn-testGemini">🧪 測試連線</button>
+        <button class="btn small ghost" id="btn-listModels">🔍 偵測可用模型</button>
+        <button class="btn small gray" id="btn-clearGemini">🗑 清除</button>
+      </div>
+      <div id="aiInfo" style="font-size:12px;color:var(--sub);margin-top:6px"></div>
+    </div>
+  </details>
 
   <div class="progress">
     <div class="pct" id="pct">0%</div>
@@ -547,6 +617,47 @@
           <select id="qTypeSelect"></select>
           <div class="qtype-info" id="qTypeInfo"></div>
         </div>
+
+        <details class="ai-gen-box" id="aiGenBox">
+          <summary>🪄 用 Gemini 一鍵生成整本繪本（含故事 + 題目 + 圖像提示詞）</summary>
+          <div class="ai-gen-grid">
+            <div>
+              <label>📚 主題</label>
+              <input type="text" id="aiTheme" placeholder="例：勇氣、友誼、環保、誠實" />
+            </div>
+            <div>
+              <label>🎓 適合年級</label>
+              <select id="aiGrade">
+                <option value="1">1 年級</option>
+                <option value="2">2 年級</option>
+                <option value="3" selected>3 年級</option>
+                <option value="4">4 年級</option>
+                <option value="5">5 年級</option>
+                <option value="6">6 年級</option>
+              </select>
+            </div>
+            <div>
+              <label>🔢 章節數</label>
+              <select id="aiChapters">
+                <option>3</option><option>4</option><option selected>5</option><option>6</option><option>7</option><option>8</option>
+              </select>
+            </div>
+            <div>
+              <label>👤 主角名（可空）</label>
+              <input type="text" id="aiProtagonist" placeholder="例：小米、阿明" />
+            </div>
+            <div style="grid-column:1/-1">
+              <label>🎨 額外要求（可空）</label>
+              <input type="text" id="aiExtra" placeholder="例：背景設在森林、加入一隻小狗、每章結尾留懸念" />
+            </div>
+          </div>
+          <div class="btn-row">
+            <button class="btn green" id="btn-aiGenBook" style="font-size:14px;padding:10px 18px">✨ 開始生成</button>
+            <span style="font-size:12px;color:var(--sub);align-self:center">用題型 = 上方選的題型</span>
+          </div>
+          <div id="aiGenStatus"></div>
+        </details>
+
         <div class="editor-meta">
           <div>
             <label>表單標題</label>
@@ -905,6 +1016,17 @@ function init(){
   if(state.urls.pub) document.getElementById('pubUrl').value = state.urls.pub;
   if(state.urls.doc) document.getElementById('docUrl').value = state.urls.doc;
   if(meta.workerUrl) document.getElementById('workerUrl').value = meta.workerUrl;
+  if(meta.geminiKey) document.getElementById('geminiKey').value = meta.geminiKey;
+  if(meta.geminiModel){
+    const sel = document.getElementById('geminiModel');
+    if(![...sel.options].some(o => o.value === meta.geminiModel)){
+      const opt = document.createElement('option');
+      opt.value = meta.geminiModel; opt.textContent = meta.geminiModel;
+      sel.appendChild(opt);
+    }
+    sel.value = meta.geminiModel;
+  }
+  updateAIStatus();
   if(state.formUrl) document.getElementById('formUrl').value = state.formUrl;
   if(state.printTitle) document.getElementById('printTitle').value = state.printTitle;
   if(state.printCls) document.getElementById('printCls').value = state.printCls;
@@ -995,6 +1117,13 @@ function wireUI(){
   on('btn-downloadQR', 'click', downloadQR);
   on('btn-printSheet', 'click', printSheet);
   on('btn-copyFormUrl', 'click', () => copyText(document.getElementById('formUrl').value, '網址已複製'));
+
+  // Gemini AI
+  on('btn-saveGemini', 'click', saveGeminiKey);
+  on('btn-clearGemini', 'click', clearGeminiKey);
+  on('btn-testGemini', 'click', testGemini);
+  on('btn-listModels', 'click', listModelsUI);
+  on('btn-aiGenBook', 'click', e => aiGenerateBook(e.currentTarget));
 
   // Footer
   on('btn-markAll', 'click', markAll);
@@ -1730,6 +1859,15 @@ function buildEditorRow(p, i){
           <input type="text" class="ed-opt-text" data-idx="${idx}" placeholder="選項 ${String.fromCharCode(65+idx)}" value="${escapeHtml(opts[idx]||'')}">
         </div>
       `).join('')}
+
+      <div class="ai-row-btns" title="需要先在頂部「🤖 Gemini AI 助手」設定 API Key">
+        <span style="font-size:11px;color:var(--sub);align-self:center;margin-right:4px">🤖 AI:</span>
+        <button class="ai-mini" data-ai="simplify">✨ 簡化故事</button>
+        <button class="ai-mini" data-ai="expand">✨ 加長故事</button>
+        <button class="ai-mini" data-ai="rewrite">✨ 換個寫法</button>
+        <button class="ai-mini" data-ai="question">✨ 出題目</button>
+        <button class="ai-mini" data-ai="imagePrompt">✨ 圖像提示詞</button>
+      </div>
     </div>
   `;
 
@@ -1772,6 +1910,11 @@ function buildEditorRow(p, i){
     const rate = parseFloat(rateSel.value) || 0.9;
     const parts = [p.title, p.story, p.question].filter(Boolean);
     speakText(parts.join('。 '), ttsBtn, rate);
+  });
+
+  // AI per-row 按鈕
+  row.querySelectorAll('.ai-mini').forEach(btn => {
+    btn.addEventListener('click', () => aiRowAction(i, btn.dataset.ai, btn));
   });
 
   return row;
@@ -1969,6 +2112,323 @@ function printSheet(){
     document.getElementById('printSheetUrl').textContent = url;
     setTimeout(() => window.print(), 150);
   });
+}
+
+// ============ Gemini API 客戶端 ============
+async function geminiCall(prompt, opts){
+  const key = (meta.geminiKey || '').trim();
+  if(!key) throw new Error('還沒設定 Gemini API Key（展開頂部「🤖 Gemini AI 助手」貼上你的 key）');
+  const model = meta.geminiModel || 'gemini-2.5-flash';
+  const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) + ':generateContent';
+
+  const body = {
+    contents: [{ parts: [{ text: prompt }] }],
+    generationConfig: {
+      temperature: opts?.temperature ?? 0.8,
+      maxOutputTokens: opts?.maxTokens ?? 4096,
+      ...(opts?.json ? { responseMimeType: 'application/json' } : {}),
+    },
+  };
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
+    body: JSON.stringify(body),
+  });
+  if(!res.ok){
+    const errText = await res.text();
+    let msg = 'HTTP ' + res.status;
+    try {
+      const j = JSON.parse(errText);
+      msg += ' · ' + (j.error?.message || errText);
+      // 偵測棄用模型，給友善提示
+      if(/not found|deprecated|not supported/i.test(j.error?.message||'')){
+        msg += '\n\n💡 試試按「🔍 偵測可用模型」更新模型清單';
+      }
+    } catch(e){ msg += ' · ' + errText.slice(0,200); }
+    throw new Error(msg);
+  }
+  const data = await res.json();
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+  if(!text){
+    const reason = data.candidates?.[0]?.finishReason;
+    if(reason === 'SAFETY') throw new Error('內容被 Gemini 安全過濾擋下，試試更柔軟的主題');
+    throw new Error('Gemini 沒回任何內容（finishReason: ' + reason + '）');
+  }
+  return text;
+}
+
+async function geminiCallJson(prompt){
+  const text = await geminiCall(prompt, { json: true });
+  // Strip code fence if Gemini still wraps it
+  const cleaned = text.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim();
+  try { return JSON.parse(cleaned); }
+  catch(e) { throw new Error('Gemini 回的不是合法 JSON：\n' + cleaned.slice(0,300)); }
+}
+
+async function listGeminiModels(){
+  const key = (meta.geminiKey || '').trim();
+  if(!key) throw new Error('還沒設定 API Key');
+  const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models', {
+    headers: { 'x-goog-api-key': key },
+  });
+  if(!res.ok) throw new Error('HTTP ' + res.status + ': ' + await res.text());
+  const data = await res.json();
+  return (data.models||[]).filter(m => (m.supportedGenerationMethods||[]).includes('generateContent'));
+}
+
+function updateAIStatus(){
+  const s = document.getElementById('aiStatus');
+  if(!s) return;
+  if(meta.geminiKey){
+    s.textContent = '✓ 已設定 (' + (meta.geminiModel || 'gemini-2.5-flash') + ')';
+    s.style.color = 'var(--green)';
+  } else {
+    s.textContent = '未設定';
+    s.style.color = 'var(--sub)';
+  }
+}
+
+function aiBusy(btn, on){
+  if(!btn) return;
+  btn.disabled = !!on;
+  if(on) btn.classList.add('busy'); else btn.classList.remove('busy');
+}
+
+// ============ AI Key UI 處理 ============
+function saveGeminiKey(){
+  const k = document.getElementById('geminiKey').value.trim();
+  const m = document.getElementById('geminiModel').value;
+  if(k && !/^[A-Za-z0-9_\-]{30,}$/.test(k)) {
+    if(!confirm('這串看起來不太像 Gemini key（一般是 39 字元、開頭 AIzaSy）。仍要儲存嗎？')) return;
+  }
+  meta.geminiKey = k;
+  meta.geminiModel = m;
+  save();
+  updateAIStatus();
+  toast(k ? '✓ 已儲存 API Key（只在這台電腦的瀏覽器）' : '已清除 API Key');
+}
+
+function clearGeminiKey(){
+  if(meta.geminiKey && !confirm('確定清除 API Key？需要再用 AI 功能要重貼。')) return;
+  document.getElementById('geminiKey').value = '';
+  meta.geminiKey = '';
+  save();
+  updateAIStatus();
+  document.getElementById('aiInfo').textContent = '';
+  toast('已清除');
+}
+
+async function testGemini(){
+  const info = document.getElementById('aiInfo');
+  info.style.color = 'var(--sub)';
+  info.textContent = '🔄 測試中…';
+  try {
+    const r = await geminiCall('回覆兩個字「OK」就好。', { maxTokens: 32, temperature: 0 });
+    info.style.color = 'var(--green)';
+    info.textContent = '✓ 連線正常，Gemini 回應：' + r.trim().slice(0,40);
+    toast('Gemini 連線 OK ✓');
+  } catch(e){
+    info.style.color = '#dc2626';
+    info.textContent = '✗ ' + e.message;
+  }
+}
+
+async function listModelsUI(){
+  const info = document.getElementById('aiInfo');
+  info.style.color = 'var(--sub)';
+  info.textContent = '🔄 偵測模型中…';
+  try {
+    const models = await listGeminiModels();
+    if(!models.length) throw new Error('沒抓到任何模型');
+    const sel = document.getElementById('geminiModel');
+    const currentValue = sel.value;
+    sel.innerHTML = '';
+    // Sort: prefer flash > flash-lite > pro
+    models.sort((a,b)=>{
+      const score = m => /flash-lite/.test(m.name) ? 1 : /flash/.test(m.name) ? 2 : /pro/.test(m.name) ? 0 : -1;
+      return score(b) - score(a);
+    });
+    models.forEach(m => {
+      const id = m.name.replace(/^models\//, '');
+      const opt = document.createElement('option');
+      opt.value = id;
+      opt.textContent = id + (m.displayName ? ' · ' + m.displayName : '');
+      sel.appendChild(opt);
+    });
+    // Try to keep previous selection
+    if([...sel.options].some(o => o.value === currentValue)) sel.value = currentValue;
+    else if([...sel.options].some(o => o.value === 'gemini-2.5-flash')) sel.value = 'gemini-2.5-flash';
+    info.style.color = 'var(--green)';
+    info.textContent = '✓ 偵測到 ' + models.length + ' 個可用模型，記得按「💾 儲存」';
+  } catch(e){
+    info.style.color = '#dc2626';
+    info.textContent = '✗ ' + e.message;
+  }
+}
+
+// ============ 整本一鍵生成 ============
+async function aiGenerateBook(btn){
+  const theme = document.getElementById('aiTheme').value.trim();
+  if(!theme){ toast('請先填主題'); return; }
+  const grade = document.getElementById('aiGrade').value;
+  const chapters = parseInt(document.getElementById('aiChapters').value);
+  const protagonist = document.getElementById('aiProtagonist').value.trim();
+  const extra = document.getElementById('aiExtra').value.trim();
+  const qtype = state.questionType || 'storyMystery';
+  const qt = QTYPES[qtype];
+
+  if(state.editor.pages.length){
+    if(!confirm('現有的 ' + state.editor.pages.length + ' 個章節會被覆蓋，確定？')) return;
+  }
+
+  const status = document.getElementById('aiGenStatus');
+  status.innerHTML = '<div class="ai-loading"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div>Gemini 正在創作繪本，約 15-30 秒…</div></div>';
+  aiBusy(btn, true);
+
+  // 依題型決定 question 結構說明
+  const optInfo = {
+    storyMystery: '3-4 個選項的單選題，標出正解 index',
+    reading: '3-4 個選項的閱讀理解題（5W1H 或推論），標出正解',
+    vocabMatch: '4 個選項，看圖選對的詞，標出正解',
+    characterAnalysis: '4-6 個性格形容詞作為複選選項，不需 correct',
+    trueFalse: '⭕對 / ❌錯 兩個選項，標出哪個是對的（0=對, 1=錯）',
+    moralDilemma: '不需要選項，留空陣列；question 是兩難情境提問',
+    imagination: '不需要選項，留空陣列；question 是引導學生發想的開放題',
+  };
+
+  const prompt = `你是國小資深繪本作家與教學設計師。請為「${grade} 年級」的學生創作一份繁體中文（zh-TW）繪本與配套測驗。
+
+主題：${theme}
+章節數：${chapters} 章
+題型：${qt.label}（${qt.desc}）
+${protagonist ? '主角名：' + protagonist : '主角名請自由命名'}
+${extra ? '額外要求：' + extra : ''}
+
+要求：
+1. 用繁體中文（zh-TW），不要用簡體字
+2. 每章故事 3-5 句，句子長度與詞彙適合 ${grade} 年級
+3. 故事連貫，有起承轉合，最後一章要有正向結局或道德啟示
+4. 每章一道題，題型風格：${optInfo[qtype] || '單選題 3-4 選項'}
+5. imagePrompt 用詳細英文（給 Imagen / Gemini Image 模型用），描述場景、角色外觀、構圖、風格（建議用 children's book illustration style）
+6. 嚴格回傳合法 JSON，不要加 markdown 標記、不要解釋
+
+JSON Schema（必須完全照這個結構）：
+{
+  "title": "繪本標題",
+  "description": "一句話介紹這本繪本",
+  "pages": [
+    {
+      "title": "第 1 章 章節名",
+      "story": "章節故事文字",
+      "imagePrompt": "Detailed English image generation prompt",
+      "question": "題目",
+      "options": ["選項1","選項2","選項3"],
+      "correct": 0
+    }
+  ]
+}`;
+
+  try {
+    const data = await geminiCallJson(prompt);
+    if(!data.pages || !Array.isArray(data.pages) || !data.pages.length) {
+      throw new Error('回傳的 pages 不是陣列或是空的');
+    }
+    // 灌進編輯器
+    state.editor.title = data.title || theme;
+    state.editor.desc = data.description || '';
+    state.editor.pages = data.pages.map(p => ({
+      title: p.title || '未命名章節',
+      imageUrl: '',  // 圖之後從步驟 3 抓
+      imagePrompt: p.imagePrompt || '',
+      story: p.story || '',
+      question: p.question || '',
+      options: Array.isArray(p.options) ? p.options.slice(0,4) : [],
+      correct: typeof p.correct === 'number' ? p.correct : 0,
+    }));
+    save();
+    document.getElementById('edTitle').value = state.editor.title;
+    document.getElementById('edDesc').value = state.editor.desc;
+    renderEditor();
+    status.innerHTML = '<div style="color:var(--green);font-size:13px;padding:10px">✓ 完成！產出 ' + data.pages.length + ' 個章節（標題：「' + (data.title||theme) + '」）。<br>下一步：到步驟 3 抓圖、回來這裡選圖、然後產 Apps Script。</div>';
+    toast('🎉 整本繪本生成完畢！');
+  } catch(e){
+    status.innerHTML = '<div class="warn">✗ ' + e.message + '</div>';
+  } finally {
+    aiBusy(btn, false);
+  }
+}
+
+// ============ 單章 AI 動作 ============
+async function aiRowAction(pageIndex, action, btn){
+  if(!meta.geminiKey){
+    toast('⚠ 請先在頂部「🤖 Gemini AI 助手」設定 API Key');
+    document.getElementById('aiBar').open = true;
+    document.getElementById('aiBar').scrollIntoView({behavior:'smooth'});
+    return;
+  }
+  const p = state.editor.pages[pageIndex];
+  if(!p) return;
+  const grade = document.getElementById('aiGrade')?.value || '3';
+  const qtype = state.questionType || 'storyMystery';
+  const qt = QTYPES[qtype];
+
+  aiBusy(btn, true);
+  try {
+    if(action === 'simplify'){
+      if(!p.story){ toast('這章還沒故事可簡化'); return; }
+      p.story = (await geminiCall(
+        `把下面繪本章節故事改寫成更簡單、適合國小 ${grade} 年級閱讀的版本（用更短的句子、更基本的詞彙、保持核心情節），用繁體中文。直接回傳新故事，不要加說明：\n\n${p.story}`,
+        { temperature: 0.6 }
+      )).trim();
+      save(); renderEditor(); toast('✓ 已簡化故事');
+
+    } else if(action === 'expand'){
+      if(!p.story){ toast('這章還沒故事可加長'); return; }
+      p.story = (await geminiCall(
+        `把下面繪本章節故事加入更多細節（角色情緒、場景描述、感官體驗）擴寫成更豐富的版本，但保持原本情節，適合 ${grade} 年級。用繁體中文，直接回傳新故事，不要加說明：\n\n${p.story}`,
+        { temperature: 0.7 }
+      )).trim();
+      save(); renderEditor(); toast('✓ 已加長故事');
+
+    } else if(action === 'rewrite'){
+      if(!p.story){ toast('這章還沒故事可改寫'); return; }
+      p.story = (await geminiCall(
+        `用不同的角度或敘事手法（例如改用對話、改用第一人稱、加入比喻），改寫下面繪本章節，保持核心情節與寓意，適合 ${grade} 年級。用繁體中文，直接回傳新故事：\n\n${p.story}`,
+        { temperature: 0.9 }
+      )).trim();
+      save(); renderEditor(); toast('✓ 換了個寫法');
+
+    } else if(action === 'question'){
+      const ctx = (p.title ? '章節：' + p.title + '\n' : '') + (p.story ? '故事：' + p.story : '');
+      if(!ctx.trim()){ toast('這章沒內容可出題'); return; }
+      const data = await geminiCallJson(
+        `根據以下繪本章節，出一道符合「${qt.label}」題型的題目，適合 ${grade} 年級。\n\n${ctx}\n\n回傳 JSON：{"question":"題目","options":["選項1","選項2","選項3"],"correct":0}\n選項用繁體中文，3-4 個選項，correct 是正解 index（0 起算）。嚴格 JSON。`
+      );
+      p.question = data.question || p.question;
+      if(Array.isArray(data.options)) p.options = data.options.slice(0,4);
+      if(typeof data.correct === 'number') p.correct = data.correct;
+      save(); renderEditor(); toast('✓ 已生成題目');
+
+    } else if(action === 'imagePrompt'){
+      const ctx = [p.title, p.story].filter(Boolean).join('. ');
+      if(!ctx){ toast('這章沒內容可生圖像提示詞'); return; }
+      const en = (await geminiCall(
+        `根據以下繪本章節內容，寫一段詳細的英文圖像生成提示詞（給 Imagen / Gemini Image 用），描述場景、角色外觀、構圖、風格。風格用 "children's book illustration"。直接回傳英文提示詞，不要加說明或引號：\n\n${ctx}`,
+        { temperature: 0.7, maxTokens: 300 }
+      )).trim();
+      p.imagePrompt = en;
+      save();
+      renderEditor();
+      // 直接複製到剪貼簿，老師可以馬上拿去 Gemini 生圖
+      copyText(en, '✓ 圖像提示詞已生成並複製');
+
+    }
+  } catch(e){
+    toast('✗ ' + e.message);
+  } finally {
+    aiBusy(btn, false);
+  }
 }
 
 // ============ 深色模式 ============
