@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>繪本 → Google 表單 一條龍工作坊</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<style>
+  :root{
+    --bg:#fef7f0;
+    --card:#ffffff;
+    --ink:#2a1a3a;
+    --sub:#6b5b7c;
+    --accent:#7c3aed;
+    --accent-2:#f97316;
+    --green:#10b981;
+    --line:#ece7f2;
+    --soft:#faf5ff;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans TC","Segoe UI",system-ui,sans-serif}
+  body{padding:20px 14px 100px;line-height:1.65}
+  .wrap{max-width:920px;margin:0 auto}
+
+  /* Header */
+  header{
+    background:linear-gradient(135deg,#7c3aed 0%,#ec4899 50%,#f97316 100%);
+    color:white;border-radius:24px;padding:28px 26px 26px;
+    box-shadow:0 12px 32px rgba(124,58,237,.25);
+    position:relative;overflow:hidden;
+  }
+  header::before{
+    content:"";position:absolute;right:-30px;top:-30px;
+    width:200px;height:200px;border-radius:50%;
+    background:rgba(255,255,255,.12);
+  }
+  header h1{margin:0;font-size:28px;font-weight:900;letter-spacing:.5px;position:relative}
+  header p{margin:6px 0 0;opacity:.9;font-size:14px;position:relative}
+  header .tag{display:inline-block;margin-top:10px;font-size:12px;background:rgba(255,255,255,.18);padding:4px 10px;border-radius:999px;backdrop-filter:blur(10px)}
+
+  /* Progress */
+  .progress{
+    background:var(--card);border-radius:16px;padding:16px 18px;margin:18px 0;
+    box-shadow:0 4px 16px rgba(124,58,237,.08);display:flex;align-items:center;gap:14px;
+    border:1px solid var(--line);
+  }
+  .pct{font-weight:900;color:var(--accent);font-size:24px;min-width:55px}
+  .bar{flex:1;height:10px;background:var(--soft);border-radius:999px;overflow:hidden}
+  .bar > span{display:block;height:100%;background:linear-gradient(90deg,#7c3aed,#ec4899,#f97316);transition:width .4s ease;border-radius:999px}
+  .pmeta{font-size:13px;color:var(--sub)}
+
+  /* Step Card */
+  .step{
+    background:var(--card);border-radius:18px;margin:14px 0;
+    box-shadow:0 4px 14px rgba(0,0,0,.04);overflow:hidden;
+    border:1px solid var(--line);transition:.2s;
+  }
+  .step.done{border-color:#a7f3d0;background:#f0fdf4}
+  .step.done .num{background:var(--green)}
+  .step-head{
+    display:flex;align-items:center;gap:14px;padding:16px 18px;cursor:pointer;
+    user-select:none;
+  }
+  .num{
+    width:38px;height:38px;border-radius:50%;background:var(--accent);
+    color:white;display:flex;align-items:center;justify-content:center;
+    font-weight:900;font-size:16px;flex-shrink:0;
+    box-shadow:0 4px 12px rgba(124,58,237,.3);
+  }
+  .num.bonus{background:var(--accent-2);box-shadow:0 4px 12px rgba(249,115,22,.3)}
+  .step-head h2{margin:0;font-size:17px;font-weight:700;flex:1}
+  .step-head .chev{color:var(--sub);transition:.2s}
+  .step.open .step-head .chev{transform:rotate(180deg)}
+  .checkbox{
+    width:24px;height:24px;border:2px solid var(--line);border-radius:8px;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;
+    background:var(--card);transition:.2s;flex-shrink:0;
+  }
+  .checkbox.checked{background:var(--green);border-color:var(--green);color:white}
+  .checkbox::after{content:"✓";color:transparent;font-weight:900;font-size:16px}
+  .checkbox.checked::after{color:white}
+
+  .step-body{padding:0 22px 22px;display:none;animation:slide .25s ease}
+  .step.open .step-body{display:block}
+  @keyframes slide{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+
+  .step-body p{margin:8px 0;color:#3b2a4d}
+  .step-body ul{margin:6px 0 14px;padding-left:22px}
+  .step-body li{margin:4px 0}
+  .step-body code{background:#f4ecff;color:#5b21b6;padding:2px 8px;border-radius:6px;font-size:13px}
+
+  /* Buttons */
+  .btn-row{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+  .btn{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:10px 16px;border-radius:10px;border:none;
+    font-family:inherit;font-size:14px;font-weight:600;
+    cursor:pointer;text-decoration:none;transition:.15s;
+    background:var(--accent);color:white;
+  }
+  .btn:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(124,58,237,.3)}
+  .btn.ghost{background:white;color:var(--accent);border:1.5px solid var(--accent)}
+  .btn.ghost:hover{background:var(--soft)}
+  .btn.orange{background:var(--accent-2)}
+  .btn.green{background:var(--green)}
+  .btn.gray{background:#e5e7eb;color:var(--ink)}
+  .btn.small{padding:6px 12px;font-size:12px}
+
+  /* Tip box */
+  .tip{
+    background:linear-gradient(135deg,#fef3c7,#fde68a);
+    border-radius:12px;padding:12px 16px;font-size:14px;
+    margin:12px 0;display:flex;gap:10px;color:#78350f;
+    border-left:4px solid #f59e0b;
+  }
+  .warn{
+    background:#fee2e2;border-left:4px solid #ef4444;color:#7f1d1d;
+    padding:12px 16px;border-radius:12px;margin:12px 0;font-size:14px;
+  }
+  .info{
+    background:#dbeafe;border-left:4px solid #3b82f6;color:#1e3a8a;
+    padding:12px 16px;border-radius:12px;margin:12px 0;font-size:14px;
+  }
+
+  /* Input + textarea */
+  input[type=url],input[type=text],textarea{
+    width:100%;padding:11px 14px;border:1.5px solid var(--line);
+    border-radius:10px;font-family:inherit;font-size:14px;
+    background:#fafafa;transition:.15s;
+  }
+  input:focus,textarea:focus{outline:none;border-color:var(--accent);background:white}
+  textarea{min-height:120px;resize:vertical;line-height:1.6}
+  label{display:block;font-size:13px;font-weight:600;color:var(--sub);margin:10px 0 6px}
+
+  /* Code block */
+  pre.code{
+    background:#1e1b2e;color:#e9d5ff;padding:14px 16px;border-radius:10px;
+    overflow-x:auto;font-size:12.5px;line-height:1.55;font-family:Consolas,Menlo,monospace;
+    margin:10px 0;position:relative;
+  }
+  pre.code .copy-btn{
+    position:absolute;top:8px;right:8px;background:rgba(255,255,255,.15);
+    border:none;color:white;padding:5px 10px;border-radius:6px;cursor:pointer;font-size:11px;
+  }
+  pre.code .copy-btn:hover{background:rgba(255,255,255,.25)}
+
+  /* Image URL output */
+  .url-output{
+    background:#f9fafb;border:1.5px solid var(--line);border-radius:10px;
+    padding:12px;margin:10px 0;max-height:280px;overflow-y:auto;
+  }
+  .url-output .url-item{
+    display:flex;align-items:center;gap:10px;padding:8px;
+    background:white;border-radius:6px;margin-bottom:6px;font-size:12px;
+  }
+  .url-output .url-item img{width:48px;height:48px;object-fit:cover;border-radius:6px;background:#eee;flex-shrink:0}
+  .url-output .url-item .u{flex:1;font-family:Consolas,monospace;word-break:break-all;font-size:11px;color:#374151}
+  .url-output .url-item button{background:var(--accent);color:white;border:none;padding:5px 10px;border-radius:6px;cursor:pointer;font-size:11px;flex-shrink:0}
+  .url-output .empty{color:var(--sub);text-align:center;padding:30px;font-size:13px}
+
+  /* Toast */
+  .toast{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(100px);
+    background:var(--ink);color:white;padding:12px 22px;border-radius:999px;
+    font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.25);transition:.3s;
+    z-index:1000;
+  }
+  .toast.show{transform:translateX(-50%) translateY(0)}
+
+  /* Footer toolbar */
+  footer{
+    background:var(--card);border-radius:16px;padding:16px;margin-top:24px;
+    box-shadow:0 4px 14px rgba(0,0,0,.04);text-align:center;
+    border:1px solid var(--line);
+  }
+  footer .btn-row{justify-content:center;margin:0}
+
+  /* Bonus divider */
+  .divider{
+    text-align:center;margin:30px 0 14px;font-size:13px;color:var(--sub);
+    font-weight:700;letter-spacing:2px;
+  }
+  .divider::before,.divider::after{
+    content:"━━━";color:#d4c5e8;margin:0 12px;
+  }
+
+  details summary{cursor:pointer;color:var(--accent);font-weight:600;padding:6px 0;font-size:14px}
+  details[open] summary{margin-bottom:8px}
+
+  /* ===== Visual Editor ===== */
+  .editor-box{background:#fdfaff;border:2px solid #e9d5ff;border-radius:14px;padding:14px;margin:12px 0}
+  .editor-meta{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+  .editor-meta input{font-size:14px}
+  .ed-empty{text-align:center;color:var(--sub);padding:30px;font-size:13px;background:white;border-radius:10px;border:2px dashed #e9d5ff}
+  .ed-row{background:white;border:1.5px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;transition:.15s}
+  .ed-row:hover{border-color:#c4b5fd}
+  .ed-row-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+  .ed-num{width:28px;height:28px;border-radius:50%;background:var(--accent);color:white;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;flex-shrink:0}
+  .ed-row-head .ed-title{flex:1;min-width:140px;font-weight:600;padding:6px 10px;font-size:14px}
+  .ed-row-head button{background:#f3f4f6;border:none;border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:14px;color:var(--sub)}
+  .ed-row-head button:hover{background:#e5e7eb}
+  .ed-row-head button.del{color:#dc2626}
+  .ed-row-head button.del:hover{background:#fee2e2}
+  .ed-row-body{display:grid;gap:8px}
+  .ed-row-body label{margin:4px 0 0;font-size:12px;color:var(--sub);font-weight:600}
+  .ed-row-body select,.ed-row-body input,.ed-row-body textarea{font-size:13px;padding:8px 10px}
+  .ed-row-body textarea{min-height:60px}
+  .ed-thumb{max-width:140px;max-height:90px;border-radius:6px;border:1px solid var(--line);background:#f9fafb;object-fit:cover}
+  .ed-opt{display:flex;align-items:center;gap:8px}
+  .ed-opt input[type=radio]{width:18px;height:18px;flex-shrink:0;accent-color:var(--green)}
+  .ed-opt input[type=text]{flex:1}
+  .gen-box{background:#1e1b2e;color:#e9d5ff;border-radius:12px;padding:14px;margin-top:12px;display:none}
+  .gen-box pre{margin:0;max-height:380px;overflow:auto;font-size:12px;line-height:1.5;font-family:Consolas,Menlo,monospace;white-space:pre-wrap;word-break:break-word}
+  .gen-box .gen-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+
+  /* ===== QR Code ===== */
+  .qr-box{background:white;border:2px solid #fef3c7;border-radius:14px;padding:16px;margin:12px 0;display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+  .qr-box canvas{border-radius:8px;background:white;display:none}
+  .qr-fields{flex:1;min-width:240px}
+  .qr-fields input{margin-bottom:8px}
+
+  /* ===== Print Distribution Sheet ===== */
+  .print-sheet{display:none;background:white;color:black;padding:30mm 20mm;font-family:"Noto Sans TC",serif}
+  .print-sheet .ps-header{text-align:center;border-bottom:3px solid #333;padding-bottom:14px;margin-bottom:24px}
+  .print-sheet .ps-header h1{font-size:28pt;margin:0;font-weight:900}
+  .print-sheet .ps-meta{display:flex;justify-content:space-between;font-size:13pt;margin-top:10px}
+  .print-sheet .ps-body{display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:center;margin:30px 0}
+  .print-sheet .ps-qr img{width:100%;max-width:200px;display:block;margin:0 auto}
+  .print-sheet .ps-howto ol{font-size:14pt;line-height:1.9;padding-left:24px}
+  .print-sheet .ps-url{font-family:Consolas,monospace;font-size:11pt;background:#f0f0f0;padding:10px;border-radius:6px;word-break:break-all;margin-top:14px;text-align:center}
+  .print-sheet .ps-foot{margin-top:30px;text-align:center;font-size:11pt;color:#666;border-top:1px solid #ccc;padding-top:14px}
+  @media print{
+    body{background:white !important;padding:0 !important}
+    body > *:not(.print-sheet){display:none !important}
+    .print-sheet{display:block !important}
+    @page{size:A4;margin:0}
+  }
+
+  @media (max-width:600px){
+    body{padding:14px 8px 80px}
+    header{padding:22px 18px}
+    header h1{font-size:22px}
+    .step-head{padding:14px}
+    .step-body{padding:0 16px 18px}
+    .num{width:32px;height:32px;font-size:14px}
+    .step-head h2{font-size:15px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>📚 繪本 → Google 表單 一條龍工作坊</h1>
+    <p>把 Gemini 畫的繪本，變成有圖片、有解謎、可發音的 Google 表單測驗</p>
+    <span class="tag">六步驟・內建工具・進度自動儲存</span>
+  </header>
+
+  <div class="progress">
+    <div class="pct" id="pct">0%</div>
+    <div style="flex:1">
+      <div class="bar"><span id="bar" style="width:0%"></span></div>
+      <div class="pmeta" id="pmeta">完成 0 / 6 個步驟</div>
+    </div>
+  </div>
+
+  <!-- ========== STEP 1 ========== -->
+  <section class="step" data-key="s1">
+    <div class="step-head">
+      <div class="checkbox" data-check="s1"></div>
+      <div class="num">1</div>
+      <h2>把繪本圖文整理進 Google Doc</h2>
+      <span class="chev">▼</span>
+    </div>
+    <div class="step-body">
+      <p>把 Gemini 產出的<strong>圖片</strong>和<strong>故事文字</strong>整理進一份 Google Doc。建議每一頁/章節用「標題 1」分隔，未來在表單裡比較好對應。</p>
+      <div class="btn-row">
+        <a class="btn" href="https://docs.google.com/document/create" target="_blank">📄 開新 Google Doc</a>
+        <a class="btn ghost" href="https://drive.google.com/drive/my-drive" target="_blank">📁 雲端硬碟</a>
+        <a class="btn ghost" href="https://gemini.google.com/" target="_blank">✨ Gemini 主頁</a>
+      </div>
+      <div class="tip">💡 <span><strong>小撇步</strong>：在 Gemini 對話裡叫它「依角色設定畫一系列繪本插圖」，把產出的圖片右鍵下載 → 拖進 Google Doc。文字部分也叫 Gemini 一起寫。</span></div>
+    </div>
+  </section>
+
+  <!-- ========== STEP 2 ========== -->
+  <section class="step" data-key="s2">
+    <div class="step-head">
+      <div class="checkbox" data-check="s2"></div>
+      <div class="num">2</div>
+      <h2>發布到網路 + 設定共用權限</h2>
+      <span class="chev">▼</span>
+    </div>
+    <div class="step-body">
+      <p><strong>兩件事要同時做，缺一不可：</strong></p>
+      <ul>
+        <li>① 在 Doc 裡按 <code>檔案 → 共用 → 發布到網路</code> → 點「發布」（拿到 <code>/pub</code> 結尾的網址）</li>
+        <li>② 右上角「共用」按鈕 → 把連結權限改成 <strong>「知道連結的任何人 → 檢視者」(Anyone with link · Viewer)</strong></li>
+      </ul>
+      <div class="warn">⚠ 只發布、沒改共用權限，圖片在表單裡會破圖（因為圖片網址是私有資源）。</div>
+      <label>把「已發布」的網址貼這裡（含 <code>/pub</code>）：</label>
+      <input type="url" id="pubUrl" placeholder="https://docs.google.com/document/d/e/2PACX-1v.../pub" />
+      <div class="btn-row">
+        <button class="btn green" onclick="checkPubUrl()">✓ 檢查網址格式</button>
+        <button class="btn ghost" onclick="copyText(document.getElementById('pubUrl').value, '已複製網址')">📋 複製網址</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== STEP 3 ========== -->
+  <section class="step" data-key="s3">
+    <div class="step-head">
+      <div class="checkbox" data-check="s3"></div>
+      <div class="num">3</div>
+      <h2>把繪本圖片轉成可嵌入網址</h2>
+      <span class="chev">▼</span>
+    </div>
+    <div class="step-body">
+      <p>從已發布的 Google Doc 抓出每張圖片的「公開直接連結」，這樣 Google 表單裡才能成功插入這些圖片。</p>
+
+      <div class="info">🔧 <strong>內建轉換器</strong>：直接在這裡轉，不必離開頁面（會用公開 CORS 代理抓取）。</div>
+
+      <label>已發布的 Google Doc 網址：</label>
+      <input type="url" id="docUrl" placeholder="https://docs.google.com/document/d/e/.../pub" />
+      <div class="btn-row">
+        <button class="btn" onclick="convertImages()">🔍 取得圖片網址</button>
+        <button class="btn ghost" onclick="useStep2Url()">↑ 套用步驟 2 的網址</button>
+        <a class="btn orange" href="https://sites.google.com/view/picconvert" target="_blank">🌐 picconvert（備援）</a>
+      </div>
+      <div id="convertStatus" style="font-size:13px;color:var(--sub);margin:8px 0"></div>
+      <div class="url-output" id="urlOutput">
+        <div class="empty">這裡會顯示轉換出來的圖片網址</div>
+      </div>
+      <div class="btn-row" id="urlActions" style="display:none">
+        <button class="btn green" onclick="copyAllUrls()">📋 一鍵複製全部網址</button>
+        <button class="btn ghost" onclick="downloadUrls()">⬇ 下載成 .txt</button>
+      </div>
+
+      <details style="margin-top:14px">
+        <summary>⚙️ 進階：自架 Cloudflare Workers 代理（穩定優先）</summary>
+        <p style="font-size:13px;color:var(--sub);margin:8px 0">
+          第三方代理可能被限流或下線。自架一個 Cloudflare Worker（免費，每天 10 萬請求），程式碼在 <code>worker.js</code>。
+        </p>
+        <ol style="font-size:13px;line-height:1.9">
+          <li>到 <a href="https://workers.cloudflare.com/" target="_blank" rel="noopener">Cloudflare Workers</a> 註冊登入</li>
+          <li>Create Worker → 命名 <code>storytell-proxy</code> → Deploy</li>
+          <li>Edit code → 把專案資料夾的 <code>worker.js</code> 內容貼上 → Save and Deploy</li>
+          <li>把它給你的網址（<code>https://storytell-proxy.xxx.workers.dev</code>）貼下面儲存</li>
+        </ol>
+        <label>你的 Worker 網址：</label>
+        <input type="url" id="workerUrl" placeholder="https://storytell-proxy.xxx.workers.dev" />
+        <div class="btn-row">
+          <button class="btn small green" onclick="saveWorkerUrl()">💾 儲存</button>
+          <button class="btn small ghost" onclick="testWorker()">🧪 測試</button>
+          <button class="btn small gray" onclick="clearWorkerUrl()">🗑 清除</button>
+        </div>
+        <div id="workerStatus" style="font-size:12px;color:var(--sub);margin-top:6px"></div>
+      </details>
+    </div>
+  </section>
+
+  <!-- ========== STEP 4 ========== -->
+  <section class="step" data-key="s4">
+    <div class="step-head">
+      <div class="checkbox" data-check="s4"></div>
+      <div class="num">4</div>
+      <h2>用 Gemini Canvas 產生 Apps Script</h2>
+      <span class="chev">▼</span>
+    </div>
+    <div class="step-body">
+      <p><strong>步驟：</strong></p>
+      <ul>
+        <li>① 開 Gemini → 對話視窗 → 把你的 Google Doc <strong>用 @ 連結</strong>或附加進去</li>
+        <li>② 右上角開 <strong>Canvas 模式</strong></li>
+        <li>③ 貼下面這段提示詞，等它產出 Apps Script 程式碼</li>
+      </ul>
+
+      <div class="btn-row">
+        <a class="btn" href="https://gemini.google.com/" target="_blank">✨ 開啟 Gemini</a>
+        <button class="btn ghost" onclick="copyText(document.getElementById('promptArea').value,'提示詞已複製')">📋 複製提示詞</button>
+      </div>
+
+      <label>Gemini Canvas 提示詞（可以再依需要加字）：</label>
+      <textarea id="promptArea">請根據附檔，利用 Google Apps Script 建立一份「故事情境解謎」的 Google 表單，依據檔案內所提供的故事情境作為題幹，一頁設計一個區段（用 PageBreak 分頁），並設計問題選項帶領學生一步步破解謎題。
+
+要求：
+1. 使用 FormApp.create() 建立新表單，標題依故事主題自動命名
+2. 每頁開頭用 addImageItem() 插入該章節的圖片（圖片網址從附檔的圖片網址清單對應）
+3. 每頁設計一題選擇題（addMultipleChoiceItem），有 3-4 個選項，標出正確答案
+4. 答錯時用 setGoToPage 帶回該章節提示，答對時前往下一章節
+5. 設成測驗（form.setIsQuiz(true)），每題正確答案配 1 分
+6. 最後一頁顯示通關訊息
+7. 在 Logger.log 印出表單的 getPublishedUrl() 和 getEditUrl()
+
+請直接給我可以貼進 script.google.com 執行的完整程式碼，包含步驟 3 轉換出來的圖片網址。</textarea>
+
+      <div class="tip">💡 <strong>進階用法</strong>：把步驟 3 轉好的圖片網址清單也貼進 Gemini 對話，叫它把圖片網址對應到每一頁。或乾脆把整份 Doc 的內容用 @ 引用，讓 Gemini 自動分頁。</div>
+    </div>
+  </section>
+
+  <!-- ========== STEP 5 ========== -->
+  <section class="step" data-key="s5">
+    <div class="step-head">
+      <div class="checkbox" data-check="s5"></div>
+      <div class="num">5</div>
+      <h2>到 Apps Script 貼上程式碼，執行產生表單</h2>
+      <span class="chev">▼</span>
+    </div>
+    <div class="step-body">
+      <p><strong>操作：</strong></p>
+      <ul>
+        <li>① 開 <code>script.google.com</code> → 新增專案</li>
+        <li>② 把 Gemini 產出的程式碼貼進去 → 儲存（💾 圖示或 Ctrl+S）</li>
+        <li>③ 上方選擇要執行的函式（通常叫 <code>buildForm</code> 或 <code>createForm</code>）→ 按「執行」</li>
+        <li>④ 第一次會跳授權視窗 → 選帳號 → 「進階」→「前往（不安全）」→ 允許</li>
+        <li>⑤ 在「執行紀錄」看 Logger 印出的表單網址</li>
+      </ul>
+
+      <div class="btn-row">
+        <a class="btn" href="https://script.google.com/home" target="_blank">🚀 開啟 Apps Script</a>
+        <a class="btn ghost" href="https://docs.google.com/forms/u/0/" target="_blank">📋 我的 Google 表單</a>
+      </div>
+
+      <div class="info">⚡ <strong>新功能：視覺化編輯器</strong> — 填表單一樣填一填，不用碰 Gemini Canvas，直接產出可貼上的 Apps Script。</div>
+
+      <div class="editor-box">
+        <div class="editor-meta">
+          <div>
+            <label>表單標題</label>
+            <input id="edTitle" placeholder="故事情境解謎闖關" />
+          </div>
+          <div>
+            <label>表單說明</label>
+            <input id="edDesc" placeholder="跟著故事一步步解開謎題吧！" />
+          </div>
+        </div>
+
+        <div id="editorRows"></div>
+
+        <div class="btn-row">
+          <button class="btn" onclick="editAdd()">➕ 新增一頁</button>
+          <button class="btn ghost" onclick="editAutoFill()">📥 從步驟 3 圖片自動建立空白頁</button>
+          <button class="btn gray small" onclick="editClear()">🗑 全部清空</button>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn green" onclick="generateAppsScript()" style="font-size:15px;padding:12px 22px">⚡ 一鍵產生 Apps Script</button>
+        </div>
+
+        <div class="gen-box" id="generatedBox">
+          <pre id="generatedCode"></pre>
+          <div class="gen-actions">
+            <button class="btn green" onclick="copyGenerated()">📋 複製程式碼</button>
+            <button class="btn ghost" onclick="downloadGenerated()">⬇ 下載 .gs</button>
+            <a class="btn orange" href="https://script.google.com/home" target="_blank" rel="noopener">🚀 開啟 Apps Script</a>
+          </div>
+        </div>
+      </div>
+
+      <details style="margin-top:14px">
+        <summary>📦 不想用視覺化編輯器？這裡有手動 Apps Script 範本（複製即用）</summary>
+        <p style="font-size:13px;color:var(--sub)">把下面 <code>pages</code> 陣列改成你的故事內容和圖片網址即可：</p>
+        <pre class="code"><button class="copy-btn" onclick="copyText(document.getElementById('tpl').textContent,'範本已複製')">複製</button><code id="tpl">function buildForm() {
+  const form = FormApp.create('故事情境解謎闖關');
+  form.setDescription('跟著故事一步步解開謎題吧！');
+  form.setIsQuiz(true);
+  form.setCollectEmail(true);
+
+  // ★ 把這裡改成你的故事 + 圖片網址（從步驟 3 轉換取得）
+  const pages = [
+    {
+      title: '第一章 神秘森林',
+      story: '小明走進魔法森林，看到三條小徑。',
+      image: 'https://lh7-rt.googleusercontent.com/docsz/AD_4nXxxxxx',
+      question: '你覺得他應該往哪走？',
+      options: ['左邊有發光的花', '中間有奇怪的腳印', '右邊聽到流水聲'],
+      correct: 1,
+      points: 1
+    },
+    {
+      title: '第二章 河邊洞穴',
+      story: '腳印帶他走到河邊，看到洞穴裡有亮光。',
+      image: 'https://lh7-rt.googleusercontent.com/docsz/AD_4nXyyyyy',
+      question: '洞穴裡是什麼？',
+      options: ['寶藏', '巨龍', '水晶球', '一封信'],
+      correct: 3,
+      points: 1
+    },
+    // ↑ 想加幾頁就加幾筆
+  ];
+
+  pages.forEach((p, i) =&gt; {
+    form.addPageBreakItem().setTitle(p.title).setHelpText(p.story);
+
+    // 圖片
+    if (p.image) {
+      try {
+        const blob = UrlFetchApp.fetch(p.image).getBlob();
+        form.addImageItem().setImage(blob).setTitle(p.title);
+      } catch (e) {
+        Logger.log('圖片抓取失敗：' + p.image + '  → ' + e.message);
+      }
+    }
+
+    // 選擇題
+    const q = form.addMultipleChoiceItem();
+    q.setTitle(p.question).setPoints(p.points || 1).setRequired(true);
+    q.setChoices(p.options.map((opt, idx) =&gt;
+      q.createChoice(opt, idx === p.correct)
+    ));
+  });
+
+  // 結尾頁
+  form.addPageBreakItem().setTitle('🎉 恭喜通關！').setHelpText('你成功幫助主角解開所有謎題！');
+
+  Logger.log('📝 填表網址：' + form.getPublishedUrl());
+  Logger.log('✏️ 編輯網址：' + form.getEditUrl());
+  Logger.log('📊 回應試算表：執行後在表單的「回應」分頁建立');
+}</code></pre>
+      </details>
+
+      <div class="warn">⚠ 圖片若放不上去，95% 是步驟 2「共用權限」沒改成「知道連結的任何人」。</div>
+    </div>
+  </section>
+
+  <!-- ========== STEP 6 ========== -->
+  <section class="step" data-key="s6">
+    <div class="step-head">
+      <div class="checkbox" data-check="s6"></div>
+      <div class="num">6</div>
+      <h2>取得表單網址，分享給學生</h2>
+      <span class="chev">▼</span>
+    </div>
+    <div class="step-body">
+      <p>從 Apps Script 的 <strong>執行紀錄</strong>複製 <code>填表網址</code>，或到 Google 表單裡按右上角「傳送」拿連結。</p>
+      <ul>
+        <li>📤 直接給連結 → 學生開瀏覽器就能填</li>
+        <li>📱 產生 QR Code（Google 表單 → 傳送 → 連結 → 縮短網址 → 用其他工具產 QR）</li>
+        <li>📚 嵌入 Google Classroom 作業</li>
+      </ul>
+      <div class="btn-row">
+        <a class="btn" href="https://docs.google.com/forms/u/0/" target="_blank" rel="noopener">📋 我的 Google 表單</a>
+        <a class="btn ghost" href="https://classroom.google.com/" target="_blank" rel="noopener">🎓 Google Classroom</a>
+      </div>
+
+      <div class="info" style="margin-top:14px">📱 <strong>內建 QR Code + A4 派發單</strong>，貼上表單網址就自動產出。</div>
+
+      <div class="qr-box">
+        <div class="qr-fields">
+          <label>表單網址（從 Apps Script 執行紀錄複製）</label>
+          <input type="url" id="formUrl" placeholder="https://docs.google.com/forms/d/e/.../viewform" oninput="updateQR()" />
+          <label>派發單標題（會顯示在列印紙上）</label>
+          <input type="text" id="printTitle" placeholder="故事情境解謎闖關" />
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div>
+              <label>班級</label>
+              <input type="text" id="printCls" placeholder="五年三班" />
+            </div>
+            <div>
+              <label>老師</label>
+              <input type="text" id="printTeacher" placeholder="王老師" />
+            </div>
+          </div>
+        </div>
+        <canvas id="qrCanvas" width="240" height="240"></canvas>
+      </div>
+
+      <div class="btn-row" id="qrActions" style="display:none">
+        <button class="btn green" onclick="downloadQR()">⬇ 下載 QR (PNG)</button>
+        <button class="btn orange" onclick="printSheet()">🖨 列印 A4 派發單</button>
+        <button class="btn ghost" onclick="copyText(document.getElementById('formUrl').value,'網址已複製')">📋 複製網址</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== BONUS DIVIDER ========== -->
+  <div class="divider">✨ 加碼功能 ✨</div>
+
+  <!-- ========== BONUS 1: TTS ========== -->
+  <section class="step" data-key="b1">
+    <div class="step-head">
+      <div class="checkbox" data-check="b1"></div>
+      <div class="num bonus">♪</div>
+      <h2>表單裡放發音 (TTS)</h2>
+      <span class="chev">▼</span>
+    </div>
+    <div class="step-body">
+      <p>Google 表單的「插入影片」欄位其實也可以放 YouTube 上的影片，<strong>但不能直接上傳音檔</strong>。兩種變通方式：</p>
+      <ul>
+        <li><strong>方法 A：Gemini TTS</strong> — 用 Google AI Studio 的 Gemini TTS 產生 WAV / MP3，下載後上傳到 YouTube（設不公開）→ 把 YouTube 連結放進表單</li>
+        <li><strong>方法 B：雲端硬碟分享連結</strong> — 把音檔（mp3）丟雲端硬碟 → 共用設「知道連結的人 → 檢視者」→ 在表單題目敘述裡放連結，學生點連結就能聽</li>
+      </ul>
+      <div class="btn-row">
+        <a class="btn orange" href="https://aistudio.google.com/generate-speech" target="_blank">🔊 Gemini TTS</a>
+        <a class="btn ghost" href="https://drive.google.com/" target="_blank">☁ 雲端硬碟</a>
+        <a class="btn ghost" href="https://studio.youtube.com/" target="_blank">▶ YouTube Studio</a>
+      </div>
+      <div class="tip">💡 用 TTS 時記得選 <strong>繁體中文女聲 / 男聲</strong>，速度設 0.9x 適合國小學生。</div>
+    </div>
+  </section>
+
+  <!-- ========== BONUS 2: NotebookLM ========== -->
+  <section class="step" data-key="b2">
+    <div class="step-head">
+      <div class="checkbox" data-check="b2"></div>
+      <div class="num bonus">📚</div>
+      <h2>NotebookLM 做關鍵詞學習單</h2>
+      <span class="chev">▼</span>
+    </div>
+    <div class="step-body">
+      <p>把繪本 Doc 加進 NotebookLM 當來源，可以自動產出：</p>
+      <ul>
+        <li>📝 <strong>學習指南</strong>（含關鍵詞、章節摘要、討論題）</li>
+        <li>❓ <strong>FAQ</strong>（學生會問什麼）</li>
+        <li>🎙️ <strong>Audio Overview</strong>（兩個 AI 主持人聊這本書，可下載當 Podcast）</li>
+        <li>📊 <strong>心智圖</strong>（角色關係、時間線）</li>
+      </ul>
+      <div class="btn-row">
+        <a class="btn orange" href="https://notebooklm.google.com/" target="_blank">📚 開啟 NotebookLM</a>
+      </div>
+      <div class="tip">💡 把 Audio Overview 下載成 mp3，丟雲端硬碟取得分享連結 → 接到「方法 B」上面，繪本就有專屬 Podcast 了。</div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->
+  <footer>
+    <div class="btn-row">
+      <button class="btn green" onclick="markAll()">✓ 全部勾選</button>
+      <button class="btn gray" onclick="resetProgress()">🔄 重設進度</button>
+      <button class="btn ghost" onclick="window.print()">🖨 列印步驟</button>
+    </div>
+    <div style="margin-top:12px;font-size:12px;color:var(--sub)">
+      進度自動儲存在這台電腦上 · 換瀏覽器或裝置會重新開始
+    </div>
+  </footer>
+</div>
+
+<!-- A4 列印派發單（平時隱藏，列印時才顯示） -->
+<div class="print-sheet" id="printSheet">
+  <div class="ps-header">
+    <h1 id="printSheetTitle">故事情境解謎闖關</h1>
+    <div class="ps-meta">
+      <span>班級：<span id="printSheetCls"></span></span>
+      <span>老師：<span id="printSheetTeacher"></span></span>
+    </div>
+  </div>
+  <div class="ps-body">
+    <div class="ps-qr"><img id="printQR" alt="QR Code"></div>
+    <div class="ps-howto">
+      <strong>📱 怎麼開始？</strong>
+      <ol>
+        <li>用手機相機掃描左邊 QR Code</li>
+        <li>點選跳出來的連結</li>
+        <li>跟著故事一步步解開謎題</li>
+        <li>完成後按「提交」</li>
+      </ol>
+    </div>
+  </div>
+  <div class="ps-url">
+    或直接輸入網址：<br><span id="printSheetUrl"></span>
+  </div>
+  <div class="ps-foot">
+    📚 由「繪本 → Google 表單 一條龍工作坊」製作
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============ State ============
+const STATE_KEY = 'storytell-workshop-v1';
+let state = JSON.parse(localStorage.getItem(STATE_KEY) || '{}');
+state.checks = state.checks || {};
+state.urls = state.urls || {};
+state.editor = state.editor || { title:'', desc:'', pages:[] };
+state.editor.pages = state.editor.pages || [];
+
+// ============ Init ============
+function init(){
+  // Restore checks
+  document.querySelectorAll('.checkbox').forEach(box=>{
+    const k = box.dataset.check;
+    if(state.checks[k]) {
+      box.classList.add('checked');
+      box.closest('.step').classList.add('done');
+    }
+    box.addEventListener('click', e=>{
+      e.stopPropagation();
+      toggleCheck(k, box);
+    });
+  });
+
+  // Toggle steps open/close
+  document.querySelectorAll('.step-head').forEach(h=>{
+    h.addEventListener('click', e=>{
+      if(e.target.classList.contains('checkbox')) return;
+      h.parentElement.classList.toggle('open');
+    });
+  });
+
+  // Open first incomplete step
+  const firstUnchecked = document.querySelector('.step:not(.done)');
+  if(firstUnchecked) firstUnchecked.classList.add('open');
+  else document.querySelector('.step').classList.add('open');
+
+  // Restore inputs
+  if(state.urls.pub) document.getElementById('pubUrl').value = state.urls.pub;
+  if(state.urls.doc) document.getElementById('docUrl').value = state.urls.doc;
+  if(state.workerUrl) document.getElementById('workerUrl').value = state.workerUrl;
+  if(state.formUrl) document.getElementById('formUrl').value = state.formUrl;
+  if(state.printTitle) document.getElementById('printTitle').value = state.printTitle;
+  if(state.printCls) document.getElementById('printCls').value = state.printCls;
+  if(state.printTeacher) document.getElementById('printTeacher').value = state.printTeacher;
+  if(state.editor.title) document.getElementById('edTitle').value = state.editor.title;
+  if(state.editor.desc) document.getElementById('edDesc').value = state.editor.desc;
+
+  // Save inputs on change
+  document.getElementById('pubUrl').addEventListener('input',e=>{state.urls.pub=e.target.value;save()});
+  document.getElementById('docUrl').addEventListener('input',e=>{state.urls.doc=e.target.value;save()});
+  document.getElementById('edTitle').addEventListener('input',e=>{state.editor.title=e.target.value;save()});
+  document.getElementById('edDesc').addEventListener('input',e=>{state.editor.desc=e.target.value;save()});
+  document.getElementById('printTitle').addEventListener('input',e=>{state.printTitle=e.target.value;save()});
+  document.getElementById('printCls').addEventListener('input',e=>{state.printCls=e.target.value;save()});
+  document.getElementById('printTeacher').addEventListener('input',e=>{state.printTeacher=e.target.value;save()});
+
+  // Restore previously converted URLs from saved state
+  if(state.convertedUrls && state.convertedUrls.length){
+    convertedUrls = state.convertedUrls;
+    renderConvertedUrls();
+  }
+
+  renderEditor();
+  if(state.formUrl) updateQR();
+
+  updateProgress();
+}
+
+function toggleCheck(key, box){
+  const isOn = box.classList.toggle('checked');
+  state.checks[key] = isOn;
+  box.closest('.step').classList.toggle('done', isOn);
+  save();
+  updateProgress();
+}
+
+function updateProgress(){
+  const main = ['s1','s2','s3','s4','s5','s6'];
+  const done = main.filter(k=>state.checks[k]).length;
+  const pct = Math.round(done/main.length*100);
+  document.getElementById('pct').textContent = pct + '%';
+  document.getElementById('bar').style.width = pct + '%';
+  document.getElementById('pmeta').textContent = `完成 ${done} / ${main.length} 個步驟${done===main.length?'  🎉 大功告成！':''}`;
+}
+
+function save(){ localStorage.setItem(STATE_KEY, JSON.stringify(state)); }
+
+// ============ Toast ============
+let toastTimer;
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+// ============ Copy ============
+async function copyText(text, msg){
+  if(!text){toast('沒有內容可複製');return}
+  try{
+    await navigator.clipboard.writeText(text);
+    toast(msg || '已複製');
+  }catch(e){
+    // Fallback
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    try{document.execCommand('copy');toast(msg||'已複製')}catch(_){toast('複製失敗')}
+    document.body.removeChild(ta);
+  }
+}
+
+// ============ Step 2: URL check ============
+function checkPubUrl(){
+  const v = document.getElementById('pubUrl').value.trim();
+  if(!v){toast('請先貼上網址');return}
+  if(!v.includes('docs.google.com/document')){toast('⚠ 這不像 Google Doc 網址');return}
+  if(!v.includes('/pub')){toast('⚠ 網址沒有 /pub，要先「發布到網路」');return}
+  toast('✓ 網址格式正確！');
+}
+
+function useStep2Url(){
+  const v = document.getElementById('pubUrl').value.trim();
+  if(!v){toast('步驟 2 還沒填網址');return}
+  document.getElementById('docUrl').value = v;
+  state.urls.doc = v; save();
+  toast('已套用步驟 2 的網址');
+}
+
+// ============ Step 3: Convert images ============
+let convertedUrls = [];
+
+function setStatus(msg, color){
+  const el = document.getElementById('convertStatus');
+  el.textContent = msg || '';
+  el.style.color = color || 'var(--sub)';
+}
+
+async function convertImages(){
+  const url = document.getElementById('docUrl').value.trim();
+  if(!url){toast('請先貼上 Google Doc 網址');return}
+  if(!url.includes('/pub')){toast('⚠ 網址不是 /pub 結尾，先發布 Doc');return}
+
+  const out = document.getElementById('urlOutput');
+  out.innerHTML = '<div class="empty">🔄 正在抓取網頁，請等 5-15 秒…</div>';
+  document.getElementById('urlActions').style.display = 'none';
+  setStatus('使用 corsproxy.io 抓取中…');
+
+  // Convert /pub to /embed (richer HTML with images inline)
+  const targetUrl = url.replace('/pub','/embed');
+  const customWorker = (state.workerUrl || '').trim().replace(/\/$/, '');
+  const proxies = [
+    ...(customWorker ? [u => customWorker + '/?url=' + encodeURIComponent(u)] : []),
+    u => 'https://corsproxy.io/?' + encodeURIComponent(u),
+    u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u),
+    u => 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(u),
+  ];
+
+  let html = null, lastErr = null;
+  for(let i=0;i<proxies.length;i++){
+    try{
+      setStatus(`嘗試代理 ${i+1}/${proxies.length}…`);
+      const res = await fetch(proxies[i](targetUrl));
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      html = await res.text();
+      if(html && html.length > 500) break;
+    }catch(e){ lastErr = e; }
+  }
+
+  if(!html){
+    out.innerHTML = '<div class="empty" style="color:#dc2626">❌ 全部代理都失敗了：'+(lastErr?.message||'unknown')+'<br>建議改用 picconvert（橘色按鈕）</div>';
+    setStatus('','');
+    return;
+  }
+
+  // Extract image URLs
+  const urls = new Set();
+  // 1. img tags
+  const doc = new DOMParser().parseFromString(html,'text/html');
+  doc.querySelectorAll('img').forEach(img=>{
+    const src = img.getAttribute('src') || img.src;
+    if(src) tryAdd(src, urls);
+  });
+  // 2. regex in raw HTML
+  const r1 = /https:\/\/[a-zA-Z0-9-]+\.googleusercontent\.com\/[^"'\s><(),;\[\]]+/g;
+  const r2 = /https:\/\/docs\.google\.com\/docs-images-rt\/[^"'\s><(),;\[\]]+/g;
+  (html.match(r1)||[]).forEach(u=>tryAdd(u,urls));
+  (html.match(r2)||[]).forEach(u=>tryAdd(u,urls));
+
+  convertedUrls = [...urls];
+
+  if(convertedUrls.length === 0){
+    out.innerHTML = '<div class="empty" style="color:#dc2626">😕 沒抓到圖片。檢查：① Doc 真的有圖嗎？② 是否設成「知道連結的人 - 檢視者」？③ 改用 picconvert 試試</div>';
+    setStatus('','');
+    return;
+  }
+
+  // Render + persist
+  state.convertedUrls = convertedUrls;
+  save();
+  renderConvertedUrls();
+  renderEditor(); // refresh image dropdowns in visual editor
+  setStatus(`✓ 抓到 ${convertedUrls.length} 張圖片（已自動加入步驟 5 編輯器的圖片選單）`, 'var(--green)');
+  toast(`找到 ${convertedUrls.length} 張圖片！`);
+}
+
+function tryAdd(src, set){
+  if(!src) return;
+  if(src.includes('googleusercontent.com') || src.includes('docs.google.com/docs-images-rt')){
+    // Clean: remove common trailing junk
+    let clean = src.split('"')[0].split("'")[0];
+    // Upgrade size suffix to higher resolution
+    clean = clean.replace(/=s\d+(-[a-z]\d*)?$/, '=s1600');
+    set.add(clean);
+  }
+}
+
+function copyAllUrls(){
+  if(!convertedUrls.length){toast('還沒抓到');return}
+  copyText(convertedUrls.join('\n'), `已複製 ${convertedUrls.length} 張圖片網址`);
+}
+
+function downloadUrls(){
+  if(!convertedUrls.length){toast('還沒抓到');return}
+  const blob = new Blob([convertedUrls.join('\n')], {type:'text/plain;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '繪本圖片網址.txt';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+// ============ Footer actions ============
+function markAll(){
+  document.querySelectorAll('.checkbox').forEach(box=>{
+    box.classList.add('checked');
+    state.checks[box.dataset.check] = true;
+    box.closest('.step').classList.add('done');
+  });
+  save();updateProgress();
+  toast('全部勾選完畢 🎉');
+}
+
+function resetProgress(){
+  if(!confirm('確定要重設所有進度與輸入嗎？')) return;
+  localStorage.removeItem(STATE_KEY);
+  location.reload();
+}
+
+// ============ Cloudflare Worker 設定 ============
+function saveWorkerUrl(){
+  const u = document.getElementById('workerUrl').value.trim();
+  if(u && !/^https?:\/\//.test(u)){toast('⚠ 網址要以 https:// 開頭');return}
+  state.workerUrl = u;
+  save();
+  document.getElementById('workerStatus').textContent = u ? '✓ 已儲存：抓取時會優先用你的 Worker' : '';
+  toast(u ? '✓ 自架代理已啟用' : '已清除');
+}
+function clearWorkerUrl(){
+  document.getElementById('workerUrl').value = '';
+  state.workerUrl = '';
+  save();
+  document.getElementById('workerStatus').textContent = '';
+  toast('已清除自架代理');
+}
+async function testWorker(){
+  const u = document.getElementById('workerUrl').value.trim().replace(/\/$/,'');
+  if(!u){toast('請先輸入 Worker 網址');return}
+  const status = document.getElementById('workerStatus');
+  status.style.color = 'var(--sub)';
+  status.textContent = '🔄 測試中…';
+  try{
+    const res = await fetch(u + '/?url=https://docs.google.com/');
+    if(res.ok){
+      status.style.color = 'var(--green)';
+      status.textContent = '✓ Worker 正常回應 (HTTP ' + res.status + ')';
+      toast('Worker 連線正常 ✓');
+    }else{
+      status.style.color = '#dc2626';
+      status.textContent = '✗ HTTP ' + res.status;
+    }
+  }catch(e){
+    status.style.color = '#dc2626';
+    status.textContent = '✗ 連線失敗：' + e.message;
+  }
+}
+
+// ============ 重新渲染已抓取的圖片清單 ============
+function renderConvertedUrls(){
+  const out = document.getElementById('urlOutput');
+  if(!convertedUrls.length){
+    out.innerHTML = '<div class="empty">這裡會顯示轉換出來的圖片網址</div>';
+    document.getElementById('urlActions').style.display = 'none';
+    return;
+  }
+  out.innerHTML = '';
+  convertedUrls.forEach((u,idx)=>{
+    const item = document.createElement('div');
+    item.className = 'url-item';
+    const safeU = u.replace(/'/g,"\\'");
+    item.innerHTML = `
+      <img src="${u}" loading="lazy">
+      <div class="u">${idx+1}. ${u}</div>
+      <button>複製</button>
+    `;
+    item.querySelector('img').addEventListener('error', e => e.target.style.opacity = .3);
+    item.querySelector('button').addEventListener('click', () => copyText(u, '已複製第'+(idx+1)+'張'));
+    out.appendChild(item);
+  });
+  document.getElementById('urlActions').style.display = '';
+}
+
+// ============ 視覺化 Apps Script 編輯器 ============
+function escapeHtml(s){
+  return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function escapeJsString(s){
+  return String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,'\\n').replace(/\r/g,'').replace(/\t/g,'\\t');
+}
+
+function renderEditor(){
+  const wrap = document.getElementById('editorRows');
+  const pages = state.editor.pages;
+  if(!pages.length){
+    wrap.innerHTML = '<div class="ed-empty">📝 還沒有任何章節<br>點下方「➕ 新增一頁」開始</div>';
+    return;
+  }
+  wrap.innerHTML = '';
+  pages.forEach((p, i) => wrap.appendChild(buildEditorRow(p, i)));
+}
+
+function buildEditorRow(p, i){
+  const row = document.createElement('div');
+  row.className = 'ed-row';
+  row.dataset.i = i;
+  const opts = p.options || ['','','',''];
+
+  // Build image dropdown options
+  let imgOptionsHtml = '<option value="">— 選擇圖片 —</option>';
+  convertedUrls.forEach((u, idx) => {
+    imgOptionsHtml += `<option value="${escapeHtml(u)}" ${u===p.imageUrl?'selected':''}>圖片 ${idx+1}</option>`;
+  });
+  // Allow custom URL too
+  imgOptionsHtml += `<option value="__custom__" ${p.imageUrl && !convertedUrls.includes(p.imageUrl)?'selected':''}>✏️ 自訂網址…</option>`;
+
+  row.innerHTML = `
+    <div class="ed-row-head">
+      <span class="ed-num">${i+1}</span>
+      <input class="ed-title" placeholder="章節標題（如：第一章 神秘森林）" value="${escapeHtml(p.title)}">
+      <button class="up" title="上移">↑</button>
+      <button class="down" title="下移">↓</button>
+      <button class="del" title="刪除">✕</button>
+    </div>
+    <div class="ed-row-body">
+      <label>圖片</label>
+      <select class="ed-img">${imgOptionsHtml}</select>
+      <input type="url" class="ed-img-custom" placeholder="自訂圖片網址" value="${p.imageUrl && !convertedUrls.includes(p.imageUrl)?escapeHtml(p.imageUrl):''}" style="display:${p.imageUrl && !convertedUrls.includes(p.imageUrl)?'block':'none'}">
+      ${p.imageUrl ? `<img src="${escapeHtml(p.imageUrl)}" class="ed-thumb">` : ''}
+
+      <label>故事敘述（會顯示在分頁標題下）</label>
+      <textarea class="ed-story" placeholder="小明走進魔法森林，看到三條小徑...">${escapeHtml(p.story)}</textarea>
+
+      <label>題目</label>
+      <input class="ed-q" placeholder="你覺得他應該往哪走？" value="${escapeHtml(p.question)}">
+
+      <label>選項（圈選正解）</label>
+      ${[0,1,2,3].map(idx => `
+        <div class="ed-opt">
+          <input type="radio" name="correct-${i}" value="${idx}" ${p.correct===idx?'checked':''}>
+          <input type="text" class="ed-opt-text" data-idx="${idx}" placeholder="選項 ${String.fromCharCode(65+idx)}" value="${escapeHtml(opts[idx]||'')}">
+        </div>
+      `).join('')}
+    </div>
+  `;
+
+  // Wire up events
+  row.querySelector('.ed-title').addEventListener('input', e => {p.title = e.target.value; save()});
+  row.querySelector('.ed-story').addEventListener('input', e => {p.story = e.target.value; save()});
+  row.querySelector('.ed-q').addEventListener('input', e => {p.question = e.target.value; save()});
+  row.querySelectorAll('input[type=radio]').forEach(r => r.addEventListener('change', e => {p.correct = parseInt(e.target.value); save()}));
+  row.querySelectorAll('.ed-opt-text').forEach(inp => inp.addEventListener('input', e => {
+    const idx = parseInt(e.target.dataset.idx);
+    p.options = p.options || ['','','',''];
+    p.options[idx] = e.target.value;
+    save();
+  }));
+  row.querySelector('.ed-img').addEventListener('change', e => {
+    const v = e.target.value;
+    const customInput = row.querySelector('.ed-img-custom');
+    if(v === '__custom__'){
+      customInput.style.display = 'block';
+      customInput.focus();
+    }else{
+      customInput.style.display = 'none';
+      p.imageUrl = v;
+      save(); renderEditor();
+    }
+  });
+  row.querySelector('.ed-img-custom').addEventListener('input', e => {
+    p.imageUrl = e.target.value;
+    save();
+  });
+  row.querySelector('.ed-img-custom').addEventListener('blur', () => renderEditor());
+  row.querySelector('.up').addEventListener('click', () => editMove(i, -1));
+  row.querySelector('.down').addEventListener('click', () => editMove(i, 1));
+  row.querySelector('.del').addEventListener('click', () => editRemove(i));
+
+  return row;
+}
+
+function editAdd(){
+  state.editor.pages.push({title:'', imageUrl:'', story:'', question:'', options:['','','',''], correct:0});
+  save(); renderEditor();
+  // Scroll to last row
+  setTimeout(() => {
+    const rows = document.querySelectorAll('.ed-row');
+    if(rows.length) rows[rows.length-1].scrollIntoView({behavior:'smooth', block:'center'});
+  }, 50);
+}
+
+function editRemove(i){
+  if(!confirm('確定刪掉第 '+(i+1)+' 頁？')) return;
+  state.editor.pages.splice(i,1);
+  save(); renderEditor();
+}
+
+function editMove(i, delta){
+  const j = i + delta;
+  const arr = state.editor.pages;
+  if(j<0 || j>=arr.length) return;
+  [arr[i], arr[j]] = [arr[j], arr[i]];
+  save(); renderEditor();
+}
+
+function editAutoFill(){
+  if(!convertedUrls.length){toast('步驟 3 還沒抓到圖片');return}
+  if(state.editor.pages.length && !confirm('會在現有清單後追加 '+convertedUrls.length+' 頁，確定？')) return;
+  convertedUrls.forEach((u, idx) => {
+    state.editor.pages.push({
+      title: '第 ' + (state.editor.pages.length + 1) + ' 章',
+      imageUrl: u,
+      story: '',
+      question: '',
+      options: ['','','',''],
+      correct: 0,
+    });
+  });
+  save(); renderEditor();
+  toast('✓ 建立 '+convertedUrls.length+' 個空白章節');
+}
+
+function editClear(){
+  if(!state.editor.pages.length) return;
+  if(!confirm('全部章節會被清掉，確定？')) return;
+  state.editor.pages = [];
+  save(); renderEditor();
+}
+
+function generateAppsScript(){
+  const title = (document.getElementById('edTitle').value || '故事情境解謎闖關').trim();
+  const desc = (document.getElementById('edDesc').value || '跟著故事一步步解開謎題吧！').trim();
+  const pages = state.editor.pages;
+  if(!pages.length){toast('還沒新增任何章節');return}
+
+  // Validate
+  const issues = [];
+  pages.forEach((p, i) => {
+    if(!p.title) issues.push('第 '+(i+1)+' 頁沒標題');
+    if(!p.question) issues.push('第 '+(i+1)+' 頁沒題目');
+    const validOpts = (p.options||[]).filter(o => o.trim());
+    if(validOpts.length < 2) issues.push('第 '+(i+1)+' 頁選項不足 2 個');
+  });
+  if(issues.length){
+    if(!confirm('注意以下問題：\n\n• '+issues.join('\n• ')+'\n\n還是要產生程式碼嗎？')) return;
+  }
+
+  const pagesData = pages.map(p => ({
+    title: p.title || '未命名章節',
+    story: p.story || '',
+    image: p.imageUrl || '',
+    question: p.question || '請選擇',
+    options: (p.options||['','','','']).filter(o => o.trim()),
+    correct: Math.min(p.correct||0, (p.options||[]).filter(o=>o.trim()).length - 1),
+  }));
+
+  const code = `/**
+ * 由「繪本 → Google 表單 一條龍工作坊」自動生成
+ * 操作：到 https://script.google.com/home → 新建專案 → 貼上 → 儲存 → 執行 buildForm
+ * 第一次會要授權，看「執行紀錄」拿表單網址
+ */
+function buildForm() {
+  const form = FormApp.create('${escapeJsString(title)}');
+  form.setDescription('${escapeJsString(desc)}');
+  form.setIsQuiz(true);
+  form.setCollectEmail(true);
+
+  const pages = ${JSON.stringify(pagesData, null, 2)};
+
+  pages.forEach(function(p, i) {
+    form.addPageBreakItem().setTitle(p.title).setHelpText(p.story);
+
+    if (p.image) {
+      try {
+        const blob = UrlFetchApp.fetch(p.image).getBlob();
+        form.addImageItem().setImage(blob).setTitle(p.title);
+      } catch (e) {
+        Logger.log('⚠️ 第 ' + (i+1) + ' 頁圖片抓取失敗：' + p.image);
+        Logger.log('  錯誤：' + e.message);
+        Logger.log('  → 檢查 Doc 共用權限是否設成「知道連結的任何人 - 檢視者」');
+      }
+    }
+
+    if (p.options && p.options.length >= 2) {
+      const q = form.addMultipleChoiceItem();
+      q.setTitle(p.question).setPoints(1).setRequired(true);
+      q.setChoices(p.options.map(function(opt, idx) {
+        return q.createChoice(opt, idx === p.correct);
+      }));
+    }
+  });
+
+  form.addPageBreakItem()
+      .setTitle('🎉 恭喜通關！')
+      .setHelpText('你成功幫助主角解開所有謎題！按下方「提交」記錄你的成績。');
+
+  Logger.log('═══════════════════════════');
+  Logger.log('📝 填表網址（給學生）：');
+  Logger.log(form.getPublishedUrl());
+  Logger.log('');
+  Logger.log('✏️ 編輯網址（給老師）：');
+  Logger.log(form.getEditUrl());
+  Logger.log('═══════════════════════════');
+}`;
+
+  document.getElementById('generatedCode').textContent = code;
+  document.getElementById('generatedBox').style.display = 'block';
+  document.getElementById('generatedBox').scrollIntoView({behavior:'smooth', block:'start'});
+  toast('✓ Apps Script 已生成！');
+}
+
+function copyGenerated(){
+  const code = document.getElementById('generatedCode').textContent;
+  if(!code){toast('還沒產生程式碼');return}
+  copyText(code, '✓ 程式碼已複製，貼到 Apps Script');
+}
+
+function downloadGenerated(){
+  const code = document.getElementById('generatedCode').textContent;
+  if(!code){toast('還沒產生程式碼');return}
+  const blob = new Blob([code], {type:'text/plain;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'storytell-form.gs';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+// ============ QR Code ============
+let qrTimer;
+function updateQR(){
+  clearTimeout(qrTimer);
+  qrTimer = setTimeout(() => {
+    const url = document.getElementById('formUrl').value.trim();
+    state.formUrl = url; save();
+    const canvas = document.getElementById('qrCanvas');
+    if(!url){
+      canvas.style.display = 'none';
+      document.getElementById('qrActions').style.display = 'none';
+      return;
+    }
+    if(typeof QRCode === 'undefined'){toast('QRCode 套件還沒載入');return}
+    QRCode.toCanvas(canvas, url, {width:240, margin:2, color:{dark:'#2a1a3a', light:'#ffffff'}}, err => {
+      if(err){toast('QR 產生失敗');return}
+      canvas.style.display = 'block';
+      document.getElementById('qrActions').style.display = '';
+    });
+  }, 250);
+}
+
+function downloadQR(){
+  const canvas = document.getElementById('qrCanvas');
+  if(canvas.style.display === 'none'){toast('還沒產生 QR');return}
+  const a = document.createElement('a');
+  a.href = canvas.toDataURL('image/png');
+  a.download = 'storytell-qr.png';
+  a.click();
+}
+
+function printSheet(){
+  const url = document.getElementById('formUrl').value.trim();
+  if(!url){toast('請先輸入表單網址');return}
+  const cls = document.getElementById('printCls').value.trim();
+  const teacher = document.getElementById('printTeacher').value.trim();
+  const title = document.getElementById('printTitle').value.trim() || '故事情境解謎闖關';
+
+  QRCode.toDataURL(url, {width:380, margin:2, color:{dark:'#000000', light:'#ffffff'}}, (err, dataUrl) => {
+    if(err){toast('QR 產生失敗');return}
+    document.getElementById('printQR').src = dataUrl;
+    document.getElementById('printSheetTitle').textContent = title;
+    document.getElementById('printSheetCls').textContent = cls || '_______';
+    document.getElementById('printSheetTeacher').textContent = teacher || '_______';
+    document.getElementById('printSheetUrl').textContent = url;
+    setTimeout(() => window.print(), 150);
+  });
+}
+
+// ============ Boot ============
+init();
+</script>
+</body>
+</html>
