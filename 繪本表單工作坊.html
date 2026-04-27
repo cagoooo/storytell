@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' https:; img-src 'self' https: data: blob:; connect-src 'self' https:; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src https://fonts.gstatic.com; frame-ancestors 'none'; base-uri 'self'" />
+<meta name="referrer" content="strict-origin-when-cross-origin" />
 <title>繪本 → Google 表單 一條龍工作坊</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -190,6 +192,29 @@
   details summary{cursor:pointer;color:var(--accent);font-weight:600;padding:6px 0;font-size:14px}
   details[open] summary{margin-bottom:8px}
 
+  /* ===== Project Bar ===== */
+  .proj-bar{background:var(--card);border-radius:14px;padding:12px 14px;margin:14px 0;box-shadow:0 4px 14px rgba(124,58,237,.08);border:1.5px solid var(--accent)}
+  .proj-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .proj-icon{font-size:20px;flex-shrink:0}
+  .proj-select{flex:1;min-width:160px;font-weight:700;color:var(--accent);font-size:15px;padding:8px 12px;border:1.5px solid var(--line);border-radius:8px;background:white;cursor:pointer}
+  .proj-btns{display:flex;gap:4px;flex-wrap:wrap}
+  .proj-btns button{width:36px;height:36px;border:1.5px solid var(--line);background:white;border-radius:8px;cursor:pointer;font-size:14px;transition:.15s}
+  .proj-btns button:hover{background:var(--soft);border-color:var(--accent)}
+  .proj-btns button.danger:hover{background:#fee2e2;border-color:#dc2626}
+  .proj-meta{font-size:11px;color:var(--sub);margin-top:6px}
+
+  /* ===== Question Type Selector ===== */
+  .qtype-bar{background:#fdfaff;border:2px solid #e9d5ff;border-radius:12px;padding:12px 14px;margin-bottom:12px}
+  .qtype-bar label{margin:0 0 6px;font-weight:700;color:var(--accent);display:block}
+  .qtype-bar select{width:100%;font-size:14px;padding:9px 12px;background:white;border:1.5px solid var(--line);border-radius:8px}
+  .qtype-info{font-size:12px;color:var(--sub);margin-top:6px;line-height:1.5}
+
+  /* ===== TTS button ===== */
+  .tts-btn{background:#f0fdf4;border:1px solid #a7f3d0;color:#065f46;padding:5px 10px;border-radius:7px;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;margin-top:4px;font-family:inherit}
+  .tts-btn:hover{background:#dcfce7}
+  .tts-btn.playing{background:#fee2e2;border-color:#fca5a5;color:#991b1b}
+  .tts-rate{font-size:11px;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:white;margin-left:4px;font-family:inherit}
+
   /* ===== Visual Editor ===== */
   .editor-box{background:#fdfaff;border:2px solid #e9d5ff;border-radius:14px;padding:14px;margin:12px 0}
   .editor-meta{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
@@ -256,8 +281,25 @@
   <header>
     <h1>📚 繪本 → Google 表單 一條龍工作坊</h1>
     <p>把 Gemini 畫的繪本，變成有圖片、有解謎、可發音的 Google 表單測驗</p>
-    <span class="tag">六步驟・內建工具・進度自動儲存</span>
+    <span class="tag">v0.3 · 多繪本 · 7 種題型 · TTS · QR · 自架代理</span>
   </header>
+
+  <div class="proj-bar">
+    <div class="proj-row">
+      <span class="proj-icon">📚</span>
+      <select class="proj-select" id="projSelect"></select>
+      <div class="proj-btns">
+        <button id="projNew" title="新增繪本">＋</button>
+        <button id="projRename" title="改名繪本">✏️</button>
+        <button id="projDup" title="複製此繪本">📋</button>
+        <button id="projExp" title="匯出 JSON">📤</button>
+        <button id="projImp" title="匯入 JSON">📥</button>
+        <button id="projDel" title="刪除繪本" class="danger">🗑</button>
+      </div>
+    </div>
+    <div class="proj-meta" id="projMeta"></div>
+    <input type="file" id="projFile" accept="application/json,.json" hidden>
+  </div>
 
   <div class="progress">
     <div class="pct" id="pct">0%</div>
@@ -278,9 +320,9 @@
     <div class="step-body">
       <p>把 Gemini 產出的<strong>圖片</strong>和<strong>故事文字</strong>整理進一份 Google Doc。建議每一頁/章節用「標題 1」分隔，未來在表單裡比較好對應。</p>
       <div class="btn-row">
-        <a class="btn" href="https://docs.google.com/document/create" target="_blank">📄 開新 Google Doc</a>
-        <a class="btn ghost" href="https://drive.google.com/drive/my-drive" target="_blank">📁 雲端硬碟</a>
-        <a class="btn ghost" href="https://gemini.google.com/" target="_blank">✨ Gemini 主頁</a>
+        <a class="btn" href="https://docs.google.com/document/create" target="_blank" rel="noopener noreferrer">📄 開新 Google Doc</a>
+        <a class="btn ghost" href="https://drive.google.com/drive/my-drive" target="_blank" rel="noopener noreferrer">📁 雲端硬碟</a>
+        <a class="btn ghost" href="https://gemini.google.com/" target="_blank" rel="noopener noreferrer">✨ Gemini 主頁</a>
       </div>
       <div class="tip">💡 <span><strong>小撇步</strong>：在 Gemini 對話裡叫它「依角色設定畫一系列繪本插圖」，把產出的圖片右鍵下載 → 拖進 Google Doc。文字部分也叫 Gemini 一起寫。</span></div>
     </div>
@@ -304,8 +346,8 @@
       <label>把「已發布」的網址貼這裡（含 <code>/pub</code>）：</label>
       <input type="url" id="pubUrl" placeholder="https://docs.google.com/document/d/e/2PACX-1v.../pub" />
       <div class="btn-row">
-        <button class="btn green" onclick="checkPubUrl()">✓ 檢查網址格式</button>
-        <button class="btn ghost" onclick="copyText(document.getElementById('pubUrl').value, '已複製網址')">📋 複製網址</button>
+        <button class="btn green" id="btn-checkPubUrl">✓ 檢查網址格式</button>
+        <button class="btn ghost" id="btn-copyPubUrl">📋 複製網址</button>
       </div>
     </div>
   </section>
@@ -326,17 +368,17 @@
       <label>已發布的 Google Doc 網址：</label>
       <input type="url" id="docUrl" placeholder="https://docs.google.com/document/d/e/.../pub" />
       <div class="btn-row">
-        <button class="btn" onclick="convertImages()">🔍 取得圖片網址</button>
-        <button class="btn ghost" onclick="useStep2Url()">↑ 套用步驟 2 的網址</button>
-        <a class="btn orange" href="https://sites.google.com/view/picconvert" target="_blank">🌐 picconvert（備援）</a>
+        <button class="btn" id="btn-convertImages">🔍 取得圖片網址</button>
+        <button class="btn ghost" id="btn-useStep2Url">↑ 套用步驟 2 的網址</button>
+        <a class="btn orange" href="https://sites.google.com/view/picconvert" target="_blank" rel="noopener noreferrer">🌐 picconvert（備援）</a>
       </div>
       <div id="convertStatus" style="font-size:13px;color:var(--sub);margin:8px 0"></div>
       <div class="url-output" id="urlOutput">
         <div class="empty">這裡會顯示轉換出來的圖片網址</div>
       </div>
       <div class="btn-row" id="urlActions" style="display:none">
-        <button class="btn green" onclick="copyAllUrls()">📋 一鍵複製全部網址</button>
-        <button class="btn ghost" onclick="downloadUrls()">⬇ 下載成 .txt</button>
+        <button class="btn green" id="btn-copyAllUrls">📋 一鍵複製全部網址</button>
+        <button class="btn ghost" id="btn-downloadUrls">⬇ 下載成 .txt</button>
       </div>
 
       <details style="margin-top:14px">
@@ -345,7 +387,7 @@
           第三方代理可能被限流或下線。自架一個 Cloudflare Worker（免費，每天 10 萬請求），程式碼在 <code>worker.js</code>。
         </p>
         <ol style="font-size:13px;line-height:1.9">
-          <li>到 <a href="https://workers.cloudflare.com/" target="_blank" rel="noopener">Cloudflare Workers</a> 註冊登入</li>
+          <li>到 <a href="https://workers.cloudflare.com/" target="_blank" rel="noopener noreferrer">Cloudflare Workers</a> 註冊登入</li>
           <li>Create Worker → 命名 <code>storytell-proxy</code> → Deploy</li>
           <li>Edit code → 把專案資料夾的 <code>worker.js</code> 內容貼上 → Save and Deploy</li>
           <li>把它給你的網址（<code>https://storytell-proxy.xxx.workers.dev</code>）貼下面儲存</li>
@@ -353,9 +395,9 @@
         <label>你的 Worker 網址：</label>
         <input type="url" id="workerUrl" placeholder="https://storytell-proxy.xxx.workers.dev" />
         <div class="btn-row">
-          <button class="btn small green" onclick="saveWorkerUrl()">💾 儲存</button>
-          <button class="btn small ghost" onclick="testWorker()">🧪 測試</button>
-          <button class="btn small gray" onclick="clearWorkerUrl()">🗑 清除</button>
+          <button class="btn small green" id="btn-saveWorker">💾 儲存</button>
+          <button class="btn small ghost" id="btn-testWorker">🧪 測試</button>
+          <button class="btn small gray" id="btn-clearWorker">🗑 清除</button>
         </div>
         <div id="workerStatus" style="font-size:12px;color:var(--sub);margin-top:6px"></div>
       </details>
@@ -379,8 +421,8 @@
       </ul>
 
       <div class="btn-row">
-        <a class="btn" href="https://gemini.google.com/" target="_blank">✨ 開啟 Gemini</a>
-        <button class="btn ghost" onclick="copyText(document.getElementById('promptArea').value,'提示詞已複製')">📋 複製提示詞</button>
+        <a class="btn" href="https://gemini.google.com/" target="_blank" rel="noopener noreferrer">✨ 開啟 Gemini</a>
+        <button class="btn ghost" id="btn-copyPrompt">📋 複製提示詞</button>
       </div>
 
       <label>Gemini Canvas 提示詞（可以再依需要加字）：</label>
@@ -420,13 +462,18 @@
       </ul>
 
       <div class="btn-row">
-        <a class="btn" href="https://script.google.com/home" target="_blank">🚀 開啟 Apps Script</a>
-        <a class="btn ghost" href="https://docs.google.com/forms/u/0/" target="_blank">📋 我的 Google 表單</a>
+        <a class="btn" href="https://script.google.com/home" target="_blank" rel="noopener noreferrer">🚀 開啟 Apps Script</a>
+        <a class="btn ghost" href="https://docs.google.com/forms/u/0/" target="_blank" rel="noopener noreferrer">📋 我的 Google 表單</a>
       </div>
 
       <div class="info">⚡ <strong>新功能：視覺化編輯器</strong> — 填表單一樣填一填，不用碰 Gemini Canvas，直接產出可貼上的 Apps Script。</div>
 
       <div class="editor-box">
+        <div class="qtype-bar">
+          <label for="qTypeSelect">🎯 題型範本</label>
+          <select id="qTypeSelect"></select>
+          <div class="qtype-info" id="qTypeInfo"></div>
+        </div>
         <div class="editor-meta">
           <div>
             <label>表單標題</label>
@@ -441,21 +488,21 @@
         <div id="editorRows"></div>
 
         <div class="btn-row">
-          <button class="btn" onclick="editAdd()">➕ 新增一頁</button>
-          <button class="btn ghost" onclick="editAutoFill()">📥 從步驟 3 圖片自動建立空白頁</button>
-          <button class="btn gray small" onclick="editClear()">🗑 全部清空</button>
+          <button class="btn" id="btn-edAdd">➕ 新增一頁</button>
+          <button class="btn ghost" id="btn-edAutoFill">📥 從步驟 3 圖片自動建立空白頁</button>
+          <button class="btn gray small" id="btn-edClear">🗑 全部清空</button>
         </div>
 
         <div class="btn-row">
-          <button class="btn green" onclick="generateAppsScript()" style="font-size:15px;padding:12px 22px">⚡ 一鍵產生 Apps Script</button>
+          <button class="btn green" id="btn-genApps" style="font-size:15px;padding:12px 22px">⚡ 一鍵產生 Apps Script</button>
         </div>
 
         <div class="gen-box" id="generatedBox">
           <pre id="generatedCode"></pre>
           <div class="gen-actions">
-            <button class="btn green" onclick="copyGenerated()">📋 複製程式碼</button>
-            <button class="btn ghost" onclick="downloadGenerated()">⬇ 下載 .gs</button>
-            <a class="btn orange" href="https://script.google.com/home" target="_blank" rel="noopener">🚀 開啟 Apps Script</a>
+            <button class="btn green" id="btn-copyGen">📋 複製程式碼</button>
+            <button class="btn ghost" id="btn-downloadGen">⬇ 下載 .gs</button>
+            <a class="btn orange" href="https://script.google.com/home" target="_blank" rel="noopener noreferrer">🚀 開啟 Apps Script</a>
           </div>
         </div>
       </div>
@@ -463,7 +510,7 @@
       <details style="margin-top:14px">
         <summary>📦 不想用視覺化編輯器？這裡有手動 Apps Script 範本（複製即用）</summary>
         <p style="font-size:13px;color:var(--sub)">把下面 <code>pages</code> 陣列改成你的故事內容和圖片網址即可：</p>
-        <pre class="code"><button class="copy-btn" onclick="copyText(document.getElementById('tpl').textContent,'範本已複製')">複製</button><code id="tpl">function buildForm() {
+        <pre class="code"><button class="copy-btn" id="btn-copyTpl">複製</button><code id="tpl">function buildForm() {
   const form = FormApp.create('故事情境解謎闖關');
   form.setDescription('跟著故事一步步解開謎題吧！');
   form.setIsQuiz(true);
@@ -542,8 +589,8 @@
         <li>📚 嵌入 Google Classroom 作業</li>
       </ul>
       <div class="btn-row">
-        <a class="btn" href="https://docs.google.com/forms/u/0/" target="_blank" rel="noopener">📋 我的 Google 表單</a>
-        <a class="btn ghost" href="https://classroom.google.com/" target="_blank" rel="noopener">🎓 Google Classroom</a>
+        <a class="btn" href="https://docs.google.com/forms/u/0/" target="_blank" rel="noopener noreferrer">📋 我的 Google 表單</a>
+        <a class="btn ghost" href="https://classroom.google.com/" target="_blank" rel="noopener noreferrer">🎓 Google Classroom</a>
       </div>
 
       <div class="info" style="margin-top:14px">📱 <strong>內建 QR Code + A4 派發單</strong>，貼上表單網址就自動產出。</div>
@@ -551,7 +598,7 @@
       <div class="qr-box">
         <div class="qr-fields">
           <label>表單網址（從 Apps Script 執行紀錄複製）</label>
-          <input type="url" id="formUrl" placeholder="https://docs.google.com/forms/d/e/.../viewform" oninput="updateQR()" />
+          <input type="url" id="formUrl" placeholder="https://docs.google.com/forms/d/e/.../viewform" />
           <label>派發單標題（會顯示在列印紙上）</label>
           <input type="text" id="printTitle" placeholder="故事情境解謎闖關" />
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
@@ -569,9 +616,9 @@
       </div>
 
       <div class="btn-row" id="qrActions" style="display:none">
-        <button class="btn green" onclick="downloadQR()">⬇ 下載 QR (PNG)</button>
-        <button class="btn orange" onclick="printSheet()">🖨 列印 A4 派發單</button>
-        <button class="btn ghost" onclick="copyText(document.getElementById('formUrl').value,'網址已複製')">📋 複製網址</button>
+        <button class="btn green" id="btn-downloadQR">⬇ 下載 QR (PNG)</button>
+        <button class="btn orange" id="btn-printSheet">🖨 列印 A4 派發單</button>
+        <button class="btn ghost" id="btn-copyFormUrl">📋 複製網址</button>
       </div>
     </div>
   </section>
@@ -594,9 +641,9 @@
         <li><strong>方法 B：雲端硬碟分享連結</strong> — 把音檔（mp3）丟雲端硬碟 → 共用設「知道連結的人 → 檢視者」→ 在表單題目敘述裡放連結，學生點連結就能聽</li>
       </ul>
       <div class="btn-row">
-        <a class="btn orange" href="https://aistudio.google.com/generate-speech" target="_blank">🔊 Gemini TTS</a>
-        <a class="btn ghost" href="https://drive.google.com/" target="_blank">☁ 雲端硬碟</a>
-        <a class="btn ghost" href="https://studio.youtube.com/" target="_blank">▶ YouTube Studio</a>
+        <a class="btn orange" href="https://aistudio.google.com/generate-speech" target="_blank" rel="noopener noreferrer">🔊 Gemini TTS</a>
+        <a class="btn ghost" href="https://drive.google.com/" target="_blank" rel="noopener noreferrer">☁ 雲端硬碟</a>
+        <a class="btn ghost" href="https://studio.youtube.com/" target="_blank" rel="noopener noreferrer">▶ YouTube Studio</a>
       </div>
       <div class="tip">💡 用 TTS 時記得選 <strong>繁體中文女聲 / 男聲</strong>，速度設 0.9x 適合國小學生。</div>
     </div>
@@ -619,7 +666,7 @@
         <li>📊 <strong>心智圖</strong>（角色關係、時間線）</li>
       </ul>
       <div class="btn-row">
-        <a class="btn orange" href="https://notebooklm.google.com/" target="_blank">📚 開啟 NotebookLM</a>
+        <a class="btn orange" href="https://notebooklm.google.com/" target="_blank" rel="noopener noreferrer">📚 開啟 NotebookLM</a>
       </div>
       <div class="tip">💡 把 Audio Overview 下載成 mp3，丟雲端硬碟取得分享連結 → 接到「方法 B」上面，繪本就有專屬 Podcast 了。</div>
     </div>
@@ -628,9 +675,9 @@
   <!-- ========== FOOTER ========== -->
   <footer>
     <div class="btn-row">
-      <button class="btn green" onclick="markAll()">✓ 全部勾選</button>
-      <button class="btn gray" onclick="resetProgress()">🔄 重設進度</button>
-      <button class="btn ghost" onclick="window.print()">🖨 列印步驟</button>
+      <button class="btn green" id="btn-markAll">✓ 全部勾選</button>
+      <button class="btn gray" id="btn-resetProgress">🔄 重設進度</button>
+      <button class="btn ghost" id="btn-print">🖨 列印步驟</button>
     </div>
     <div style="margin-top:12px;font-size:12px;color:var(--sub)">
       進度自動儲存在這台電腦上 · 換瀏覽器或裝置會重新開始
@@ -670,13 +717,83 @@
 <div class="toast" id="toast"></div>
 
 <script>
-// ============ State ============
+// ============ State (multi-project) ============
 const STATE_KEY = 'storytell-workshop-v1';
-let state = JSON.parse(localStorage.getItem(STATE_KEY) || '{}');
-state.checks = state.checks || {};
-state.urls = state.urls || {};
-state.editor = state.editor || { title:'', desc:'', pages:[] };
-state.editor.pages = state.editor.pages || [];
+let meta = { version: 3, currentId: null, workerUrl: '', projects: [] };
+let state = null;          // 指向 meta.projects 裡當下的那一本
+let convertedUrls = [];    // 抓到的圖片網址（從 state.convertedUrls 同步）
+
+function genId(){ return 'p' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+function newProjectData(name){
+  return {
+    id: genId(),
+    name: name || '未命名繪本',
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+    checks: {},
+    urls: {},
+    convertedUrls: [],
+    editor: { title:'', desc:'', pages:[] },
+    formUrl: '',
+    printTitle: '',
+    printCls: '',
+    printTeacher: '',
+    questionType: 'storyMystery',
+  };
+}
+
+function loadAll(){
+  let raw = {};
+  try { raw = JSON.parse(localStorage.getItem(STATE_KEY) || '{}'); } catch(e){}
+
+  // Migrate v0.1 / v0.2 → v0.3
+  if (!raw.version){
+    const hasOld = raw.checks || raw.urls || raw.editor;
+    meta = { version:3, currentId:null, workerUrl: raw.workerUrl||'', projects:[] };
+    if (hasOld){
+      const p = newProjectData('我的第一個繪本');
+      Object.assign(p, {
+        checks: raw.checks || {},
+        urls: raw.urls || {},
+        convertedUrls: raw.convertedUrls || [],
+        editor: raw.editor || { title:'', desc:'', pages:[] },
+        formUrl: raw.formUrl || '',
+        printTitle: raw.printTitle || '',
+        printCls: raw.printCls || '',
+        printTeacher: raw.printTeacher || '',
+      });
+      p.editor.pages = p.editor.pages || [];
+      meta.projects.push(p);
+      meta.currentId = p.id;
+    }
+  } else {
+    meta = raw;
+    meta.workerUrl = meta.workerUrl || '';
+    meta.projects = meta.projects || [];
+  }
+
+  // 確保至少有一本繪本
+  if (!meta.projects.length){
+    const p = newProjectData('我的第一個繪本');
+    meta.projects.push(p);
+    meta.currentId = p.id;
+  }
+  if (!meta.projects.find(p => p.id === meta.currentId)){
+    meta.currentId = meta.projects[0].id;
+  }
+
+  state = meta.projects.find(p => p.id === meta.currentId);
+  // 確保所有欄位齊全（萬一是舊資料缺欄）
+  state.checks = state.checks || {};
+  state.urls = state.urls || {};
+  state.editor = state.editor || { title:'', desc:'', pages:[] };
+  state.editor.pages = state.editor.pages || [];
+  state.convertedUrls = state.convertedUrls || [];
+  state.questionType = state.questionType || 'storyMystery';
+}
+
+loadAll();
 
 // ============ Init ============
 function init(){
@@ -709,7 +826,7 @@ function init(){
   // Restore inputs
   if(state.urls.pub) document.getElementById('pubUrl').value = state.urls.pub;
   if(state.urls.doc) document.getElementById('docUrl').value = state.urls.doc;
-  if(state.workerUrl) document.getElementById('workerUrl').value = state.workerUrl;
+  if(meta.workerUrl) document.getElementById('workerUrl').value = meta.workerUrl;
   if(state.formUrl) document.getElementById('formUrl').value = state.formUrl;
   if(state.printTitle) document.getElementById('printTitle').value = state.printTitle;
   if(state.printCls) document.getElementById('printCls').value = state.printCls;
@@ -725,6 +842,7 @@ function init(){
   document.getElementById('printTitle').addEventListener('input',e=>{state.printTitle=e.target.value;save()});
   document.getElementById('printCls').addEventListener('input',e=>{state.printCls=e.target.value;save()});
   document.getElementById('printTeacher').addEventListener('input',e=>{state.printTeacher=e.target.value;save()});
+  document.getElementById('formUrl').addEventListener('input',updateQR);
 
   // Restore previously converted URLs from saved state
   if(state.convertedUrls && state.convertedUrls.length){
@@ -732,10 +850,83 @@ function init(){
     renderConvertedUrls();
   }
 
+  // Build dropdowns
+  buildQTypeOptions();
+  renderProjectBar();
+  syncGeminiPrompt();
+
+  // Wire up event handlers (security audit: no inline onclicks)
+  wireUI();
+
   renderEditor();
   if(state.formUrl) updateQR();
 
   updateProgress();
+}
+
+function wireUI(){
+  // 專案列
+  document.getElementById('projSelect').addEventListener('change', e => switchProject(e.target.value));
+  document.getElementById('projNew').addEventListener('click', projNew);
+  document.getElementById('projRename').addEventListener('click', projRename);
+  document.getElementById('projDup').addEventListener('click', projDup);
+  document.getElementById('projDel').addEventListener('click', projDel);
+  document.getElementById('projExp').addEventListener('click', projExport);
+  document.getElementById('projImp').addEventListener('click', () => document.getElementById('projFile').click());
+  document.getElementById('projFile').addEventListener('change', e => {
+    const f = e.target.files[0];
+    if(f) projImport(f);
+    e.target.value = '';
+  });
+
+  // 題型
+  document.getElementById('qTypeSelect').addEventListener('change', e => {
+    state.questionType = e.target.value;
+    save();
+    updateQTypeInfo();
+    syncGeminiPrompt();
+    toast('已切換到「' + (QTYPES[e.target.value]?.label || '?') + '」');
+  });
+
+  // 步驟 2 按鈕
+  on('btn-checkPubUrl', 'click', checkPubUrl);
+  on('btn-copyPubUrl', 'click', () => copyText(document.getElementById('pubUrl').value, '已複製網址'));
+
+  // 步驟 3 按鈕
+  on('btn-convertImages', 'click', convertImages);
+  on('btn-useStep2Url', 'click', useStep2Url);
+  on('btn-copyAllUrls', 'click', copyAllUrls);
+  on('btn-downloadUrls', 'click', downloadUrls);
+  on('btn-saveWorker', 'click', saveWorkerUrl);
+  on('btn-testWorker', 'click', testWorker);
+  on('btn-clearWorker', 'click', clearWorkerUrl);
+
+  // 步驟 4 按鈕
+  on('btn-copyPrompt', 'click', () => copyText(document.getElementById('promptArea').value, '提示詞已複製'));
+
+  // 步驟 5 按鈕
+  on('btn-edAdd', 'click', editAdd);
+  on('btn-edAutoFill', 'click', editAutoFill);
+  on('btn-edClear', 'click', editClear);
+  on('btn-genApps', 'click', generateAppsScript);
+  on('btn-copyGen', 'click', copyGenerated);
+  on('btn-downloadGen', 'click', downloadGenerated);
+  on('btn-copyTpl', 'click', () => copyText(document.getElementById('tpl').textContent, '範本已複製'));
+
+  // 步驟 6 按鈕
+  on('btn-downloadQR', 'click', downloadQR);
+  on('btn-printSheet', 'click', printSheet);
+  on('btn-copyFormUrl', 'click', () => copyText(document.getElementById('formUrl').value, '網址已複製'));
+
+  // Footer
+  on('btn-markAll', 'click', markAll);
+  on('btn-resetProgress', 'click', resetProgress);
+  on('btn-print', 'click', () => window.print());
+}
+
+function on(id, ev, fn){
+  const el = document.getElementById(id);
+  if(el) el.addEventListener(ev, fn);
 }
 
 function toggleCheck(key, box){
@@ -755,7 +946,10 @@ function updateProgress(){
   document.getElementById('pmeta').textContent = `完成 ${done} / ${main.length} 個步驟${done===main.length?'  🎉 大功告成！':''}`;
 }
 
-function save(){ localStorage.setItem(STATE_KEY, JSON.stringify(state)); }
+function save(){
+  if(state) state.updatedAt = Date.now();
+  localStorage.setItem(STATE_KEY, JSON.stringify(meta));
+}
 
 // ============ Toast ============
 let toastTimer;
@@ -802,8 +996,6 @@ function useStep2Url(){
 }
 
 // ============ Step 3: Convert images ============
-let convertedUrls = [];
-
 function setStatus(msg, color){
   const el = document.getElementById('convertStatus');
   el.textContent = msg || '';
@@ -822,7 +1014,7 @@ async function convertImages(){
 
   // Convert /pub to /embed (richer HTML with images inline)
   const targetUrl = url.replace('/pub','/embed');
-  const customWorker = (state.workerUrl || '').trim().replace(/\/$/, '');
+  const customWorker = (meta.workerUrl || '').trim().replace(/\/$/, '');
   const proxies = [
     ...(customWorker ? [u => customWorker + '/?url=' + encodeURIComponent(u)] : []),
     u => 'https://corsproxy.io/?' + encodeURIComponent(u),
@@ -916,23 +1108,364 @@ function markAll(){
 }
 
 function resetProgress(){
-  if(!confirm('確定要重設所有進度與輸入嗎？')) return;
-  localStorage.removeItem(STATE_KEY);
-  location.reload();
+  if(!confirm('確定要重設「' + state.name + '」的進度與輸入嗎？\n\n（其他繪本不受影響；要全部清掉請按「取消」後手動刪除每本）')) return;
+  state.checks = {};
+  state.urls = {};
+  state.editor = { title:'', desc:'', pages:[] };
+  state.convertedUrls = [];
+  state.formUrl = '';
+  state.printTitle = '';
+  state.printCls = '';
+  state.printTeacher = '';
+  state.questionType = 'storyMystery';
+  convertedUrls = [];
+  save();
+  rerenderAll();
+  toast('已重設「' + state.name + '」');
+}
+
+// ============ 多專案管理 ============
+function renderProjectBar(){
+  const sel = document.getElementById('projSelect');
+  sel.innerHTML = '';
+  meta.projects.slice().sort((a,b) => (b.updatedAt||0) - (a.updatedAt||0)).forEach(p => {
+    const opt = document.createElement('option');
+    opt.value = p.id;
+    opt.textContent = p.name + (p.id === meta.currentId ? '  ★' : '');
+    if(p.id === meta.currentId) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  const updated = state.updatedAt ? new Date(state.updatedAt).toLocaleString('zh-TW',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '剛剛';
+  const pageCount = (state.editor.pages||[]).length;
+  document.getElementById('projMeta').textContent = `📅 上次編輯：${updated}　·　📝 ${pageCount} 章　·　共 ${meta.projects.length} 本繪本`;
+}
+
+function switchProject(id){
+  if(!id || id === meta.currentId) return;
+  save();
+  meta.currentId = id;
+  state = meta.projects.find(p => p.id === id);
+  state.checks = state.checks || {};
+  state.urls = state.urls || {};
+  state.editor = state.editor || { title:'', desc:'', pages:[] };
+  state.editor.pages = state.editor.pages || [];
+  state.convertedUrls = state.convertedUrls || [];
+  state.questionType = state.questionType || 'storyMystery';
+  convertedUrls = state.convertedUrls;
+  save();
+  rerenderAll();
+  toast('已切換到「' + state.name + '」');
+}
+
+function projNew(){
+  const name = prompt('新繪本名稱：', '繪本 ' + (meta.projects.length+1));
+  if(!name) return;
+  const p = newProjectData(name.trim());
+  meta.projects.push(p);
+  meta.currentId = p.id;
+  state = p;
+  convertedUrls = [];
+  save();
+  rerenderAll();
+  toast('✓ 已建立「' + p.name + '」');
+}
+
+function projRename(){
+  const name = prompt('改名為：', state.name);
+  if(!name || name.trim() === state.name) return;
+  state.name = name.trim();
+  save();
+  renderProjectBar();
+  toast('✓ 已改名');
+}
+
+function projDup(){
+  const copy = JSON.parse(JSON.stringify(state));
+  copy.id = genId();
+  copy.name = state.name + ' (副本)';
+  copy.createdAt = Date.now();
+  copy.updatedAt = Date.now();
+  meta.projects.push(copy);
+  meta.currentId = copy.id;
+  state = copy;
+  convertedUrls = state.convertedUrls || [];
+  save();
+  rerenderAll();
+  toast('✓ 已複製「' + copy.name + '」');
+}
+
+function projDel(){
+  if(meta.projects.length <= 1){ toast('⚠ 至少要保留一本繪本'); return; }
+  if(!confirm('確定刪除「' + state.name + '」？無法復原。')) return;
+  const idx = meta.projects.findIndex(p => p.id === meta.currentId);
+  meta.projects.splice(idx, 1);
+  meta.currentId = meta.projects[Math.max(0, idx-1)].id;
+  state = meta.projects.find(p => p.id === meta.currentId);
+  convertedUrls = state.convertedUrls || [];
+  save();
+  rerenderAll();
+  toast('已刪除');
+}
+
+function projExport(){
+  const data = JSON.stringify(state, null, 2);
+  const blob = new Blob([data], {type:'application/json;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = (state.name || 'storytell').replace(/[\\/:*?"<>|]/g,'_') + '.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast('✓ 已匯出 ' + a.download);
+}
+
+function projImport(file){
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const obj = JSON.parse(e.target.result);
+      if(!obj || (!obj.editor && !obj.checks)) throw new Error('檔案格式不對');
+      obj.id = genId();
+      obj.name = (obj.name || '匯入的繪本') + ' (匯入)';
+      obj.createdAt = obj.createdAt || Date.now();
+      obj.updatedAt = Date.now();
+      obj.checks = obj.checks || {};
+      obj.urls = obj.urls || {};
+      obj.editor = obj.editor || { title:'', desc:'', pages:[] };
+      obj.editor.pages = obj.editor.pages || [];
+      obj.convertedUrls = obj.convertedUrls || [];
+      obj.questionType = obj.questionType || 'storyMystery';
+      meta.projects.push(obj);
+      meta.currentId = obj.id;
+      state = obj;
+      convertedUrls = state.convertedUrls;
+      save();
+      rerenderAll();
+      toast('✓ 已匯入「' + obj.name + '」');
+    } catch(err) {
+      toast('✗ 匯入失敗：' + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+function rerenderAll(){
+  // 進度
+  document.querySelectorAll('.checkbox').forEach(box => {
+    const k = box.dataset.check;
+    const on = !!state.checks[k];
+    box.classList.toggle('checked', on);
+    box.closest('.step').classList.toggle('done', on);
+  });
+  // 輸入欄位
+  const setVal = (id, val) => { const el = document.getElementById(id); if(el) el.value = val || ''; };
+  setVal('pubUrl', state.urls.pub);
+  setVal('docUrl', state.urls.doc);
+  setVal('edTitle', state.editor.title);
+  setVal('edDesc', state.editor.desc);
+  setVal('formUrl', state.formUrl);
+  setVal('printTitle', state.printTitle);
+  setVal('printCls', state.printCls);
+  setVal('printTeacher', state.printTeacher);
+  // 題型
+  const qSel = document.getElementById('qTypeSelect');
+  if(qSel) qSel.value = state.questionType || 'storyMystery';
+  updateQTypeInfo();
+  syncGeminiPrompt();
+  // 圖片清單 + 編輯器
+  renderConvertedUrls();
+  renderEditor();
+  // QR
+  if(state.formUrl){
+    updateQR();
+  } else {
+    const c = document.getElementById('qrCanvas');
+    if(c) c.style.display = 'none';
+    const a = document.getElementById('qrActions');
+    if(a) a.style.display = 'none';
+  }
+  // 隱藏已生成的程式碼
+  const gb = document.getElementById('generatedBox');
+  if(gb) gb.style.display = 'none';
+  setStatus('','');
+  updateProgress();
+  renderProjectBar();
+}
+
+// ============ 題型範本 ============
+const QTYPES = {
+  storyMystery: {
+    label: '🧩 故事情境解謎',
+    age: '3-6 年級',
+    desc: '一頁一情境，每章一道單選題，答對得分。最常用，預設題型。',
+    geminiPrompt: '請根據附檔，利用 Google Apps Script 建立一份「故事情境解謎」的 Google 表單，依據檔案內所提供的故事情境作為題幹，一頁設計一個區段（用 PageBreak 分頁），每頁一個圖片+一道選擇題（3-4 個選項，標出正解），並設成測驗（form.setIsQuiz(true)，每題 1 分），答對前往下一章，最後一頁顯示通關訊息。在 Logger.log 印出表單的 getPublishedUrl() 和 getEditUrl()。',
+    addItem: (p) => {
+      const opts = (p.options||[]).filter(o=>o.trim());
+      if(opts.length < 2) return '';
+      const correct = Math.min(p.correct||0, opts.length-1);
+      return `  const q_${Math.random().toString(36).slice(2,7)} = (() => {
+    const q = form.addMultipleChoiceItem();
+    q.setTitle(${JSON.stringify(p.question||'請選擇')}).setPoints(1).setRequired(true);
+    q.setChoices([${opts.map((o,i)=>`q.createChoice(${JSON.stringify(o)}, ${i===correct})`).join(', ')}]);
+    return q;
+  })();`;
+    },
+  },
+  reading: {
+    label: '📖 閱讀理解',
+    age: '1-6 年級',
+    desc: '每頁圖+故事段+一道題（5W1H 或推論）。配上短答開放題效果更好。',
+    geminiPrompt: '請根據附檔故事，建立一份「閱讀理解」Google 表單測驗。每一頁是一個段落（圖+文），下面一道閱讀理解題（5W1H 或推論題）。一頁設計一個區段，題目選擇題 3-4 個選項，標出正解。setIsQuiz(true)，每題 1 分。在 Logger.log 印出表單網址。',
+    addItem: (p) => QTYPES.storyMystery.addItem(p),
+  },
+  vocabMatch: {
+    label: '🔤 字彙連連看（看圖選詞）',
+    age: '1-3 年級',
+    desc: '每頁一張圖（角色/物件），下方四個詞配對。低年級識字利器。',
+    geminiPrompt: '請根據附檔的繪本插圖，建立一份「看圖選詞」Google 表單測驗。每一頁顯示一張圖（用 addImageItem），下方一道單選題請學生選出正確的詞彙（描述圖中的角色或物件），4 個選項。setIsQuiz(true)，每題 1 分。在 Logger.log 印出表單網址。',
+    addItem: (p) => QTYPES.storyMystery.addItem(p),
+  },
+  characterAnalysis: {
+    label: '🎭 角色性格分析（複選）',
+    age: '4-6 年級',
+    desc: '圖片+複選形容詞+開放短答「為什麼」。培養人物分析力。',
+    geminiPrompt: '請根據附檔繪本，建立一份「角色性格分析」Google 表單。每一章一頁，顯示角色插圖，使用 addCheckboxItem 讓學生勾選符合該角色性格的形容詞（如：勇敢、善良、衝動...），並用 addParagraphTextItem 讓學生寫一段 2-3 句的解釋。不設正解（form.setIsQuiz(false)）。在 Logger.log 印出表單網址。',
+    addItem: (p) => {
+      const opts = (p.options||[]).filter(o=>o.trim());
+      let code = '';
+      if(opts.length >= 2){
+        code += `  const cb_${Math.random().toString(36).slice(2,7)} = (() => {
+    const q = form.addCheckboxItem();
+    q.setTitle(${JSON.stringify(p.question||'你覺得這個角色是怎樣的人？（可複選）')}).setRequired(true);
+    q.setChoices([${opts.map(o=>`q.createChoice(${JSON.stringify(o)})`).join(', ')}]);
+    return q;
+  })();
+`;
+      }
+      code += `  form.addParagraphTextItem()
+    .setTitle('請用 2-3 句話說說你的觀察')
+    .setRequired(false);`;
+      return code;
+    },
+  },
+  trueFalse: {
+    label: '✅ 是非題',
+    age: '1-4 年級',
+    desc: '一張圖+一句敘述，學生判斷對或錯。最簡單上手。',
+    geminiPrompt: '請根據附檔，建立一份「是非題」Google 表單。每一頁一張圖+一個敘述句，使用 addMultipleChoiceItem 給「對」「錯」兩個選項，標出正解。setIsQuiz(true)，每題 1 分。在 Logger.log 印出表單網址。',
+    addItem: (p) => {
+      const correct = (p.correct||0) === 0 ? 0 : 1;
+      return `  const tf_${Math.random().toString(36).slice(2,7)} = (() => {
+    const q = form.addMultipleChoiceItem();
+    q.setTitle(${JSON.stringify(p.question||'這個敘述對嗎？')}).setPoints(1).setRequired(true);
+    q.setChoices([
+      q.createChoice('⭕ 對', ${correct===0}),
+      q.createChoice('❌ 錯', ${correct===1})
+    ]);
+    return q;
+  })();`;
+    },
+  },
+  moralDilemma: {
+    label: '🤔 道德兩難（開放討論）',
+    age: '5-6 年級',
+    desc: '每頁一個兩難情境，學生用 3-5 句寫出選擇與理由。培養思辨。',
+    geminiPrompt: '請根據附檔，建立一份「道德兩難」Google 表單。每一章呈現一個兩難情境（圖+文），使用 addParagraphTextItem 讓學生寫下自己的選擇與理由（建議 3-5 句）。不設正解（form.setIsQuiz(false)）。在 Logger.log 印出表單網址。',
+    addItem: (p) => `  form.addParagraphTextItem()
+    .setTitle(${JSON.stringify(p.question||'你會怎麼選？為什麼？')})
+    .setHelpText('請用 3-5 句話說明你的想法')
+    .setRequired(true);`,
+  },
+  imagination: {
+    label: '🎨 看圖說故事（短答）',
+    age: '1-3 年級',
+    desc: '每頁一張圖，學生用一兩句話描述。低年級寫作練習。',
+    geminiPrompt: '請根據附檔，建立一份「看圖說故事」Google 表單。每一頁一張插圖，使用 addTextItem（短答）讓學生用一兩句話描述圖中正在發生什麼。不設正解（form.setIsQuiz(false)）。在 Logger.log 印出表單網址。',
+    addItem: (p) => `  form.addTextItem()
+    .setTitle(${JSON.stringify(p.question||'你看到圖中發生什麼事？')})
+    .setHelpText('用 1-2 句話描述')
+    .setRequired(true);`,
+  },
+};
+
+function buildQTypeOptions(){
+  const sel = document.getElementById('qTypeSelect');
+  sel.innerHTML = '';
+  Object.entries(QTYPES).forEach(([k, v]) => {
+    const opt = document.createElement('option');
+    opt.value = k;
+    opt.textContent = v.label + ' · ' + v.age;
+    sel.appendChild(opt);
+  });
+  sel.value = state.questionType || 'storyMystery';
+  updateQTypeInfo();
+}
+
+function updateQTypeInfo(){
+  const sel = document.getElementById('qTypeSelect');
+  const k = (sel ? sel.value : '') || state.questionType || 'storyMystery';
+  const t = QTYPES[k];
+  if(!t) return;
+  document.getElementById('qTypeInfo').textContent = '💡 ' + t.desc;
+}
+
+function syncGeminiPrompt(){
+  const k = state.questionType || 'storyMystery';
+  const t = QTYPES[k] || QTYPES.storyMystery;
+  const ta = document.getElementById('promptArea');
+  if(!ta) return;
+  ta.value = t.geminiPrompt + '\n\n請直接給我可以貼進 script.google.com 執行的完整程式碼，包含步驟 3 轉換出來的圖片網址。';
+}
+
+// ============ TTS 試聽 ============
+let _ttsActiveBtn = null;
+function speakText(text, btn, rate){
+  if(!('speechSynthesis' in window)){
+    toast('⚠ 你的瀏覽器不支援語音合成');
+    return;
+  }
+  // 點同一顆會停止
+  if(speechSynthesis.speaking || speechSynthesis.pending){
+    speechSynthesis.cancel();
+    if(_ttsActiveBtn){
+      _ttsActiveBtn.classList.remove('playing');
+      _ttsActiveBtn.textContent = '▶ 試聽';
+    }
+    if(_ttsActiveBtn === btn){ _ttsActiveBtn = null; return; }
+    _ttsActiveBtn = null;
+  }
+  if(!text || !text.trim()){
+    toast('還沒有故事內容可朗讀');
+    return;
+  }
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'zh-TW';
+  u.rate = parseFloat(rate) || 0.9;
+  const voices = speechSynthesis.getVoices();
+  const tw = voices.find(v => v.lang === 'zh-TW') || voices.find(v => v.lang.startsWith('zh'));
+  if(tw) u.voice = tw;
+  u.onstart = () => {
+    if(btn){ btn.classList.add('playing'); btn.textContent = '⏸ 停止'; }
+  };
+  u.onend = u.onerror = () => {
+    if(btn){ btn.classList.remove('playing'); btn.textContent = '▶ 試聽'; }
+    _ttsActiveBtn = null;
+  };
+  _ttsActiveBtn = btn;
+  speechSynthesis.speak(u);
 }
 
 // ============ Cloudflare Worker 設定 ============
 function saveWorkerUrl(){
   const u = document.getElementById('workerUrl').value.trim();
   if(u && !/^https?:\/\//.test(u)){toast('⚠ 網址要以 https:// 開頭');return}
-  state.workerUrl = u;
+  meta.workerUrl = u;
   save();
   document.getElementById('workerStatus').textContent = u ? '✓ 已儲存：抓取時會優先用你的 Worker' : '';
   toast(u ? '✓ 自架代理已啟用' : '已清除');
 }
 function clearWorkerUrl(){
   document.getElementById('workerUrl').value = '';
-  state.workerUrl = '';
+  meta.workerUrl = '';
   save();
   document.getElementById('workerStatus').textContent = '';
   toast('已清除自架代理');
@@ -1033,6 +1566,15 @@ function buildEditorRow(p, i){
 
       <label>故事敘述（會顯示在分頁標題下）</label>
       <textarea class="ed-story" placeholder="小明走進魔法森林，看到三條小徑...">${escapeHtml(p.story)}</textarea>
+      <div>
+        <button type="button" class="tts-btn" data-tts>▶ 試聽</button>
+        <select class="tts-rate" data-rate>
+          <option value="0.7">慢速 0.7x</option>
+          <option value="0.9" selected>普通 0.9x</option>
+          <option value="1.0">標準 1.0x</option>
+          <option value="1.2">快速 1.2x</option>
+        </select>
+      </div>
 
       <label>題目</label>
       <input class="ed-q" placeholder="你覺得他應該往哪走？" value="${escapeHtml(p.question)}">
@@ -1078,6 +1620,15 @@ function buildEditorRow(p, i){
   row.querySelector('.up').addEventListener('click', () => editMove(i, -1));
   row.querySelector('.down').addEventListener('click', () => editMove(i, 1));
   row.querySelector('.del').addEventListener('click', () => editRemove(i));
+
+  // TTS preview
+  const ttsBtn = row.querySelector('[data-tts]');
+  const rateSel = row.querySelector('[data-rate]');
+  ttsBtn.addEventListener('click', () => {
+    const rate = parseFloat(rateSel.value) || 0.9;
+    const parts = [p.title, p.story, p.question].filter(Boolean);
+    speakText(parts.join('。 '), ttsBtn, rate);
+  });
 
   return row;
 }
@@ -1131,71 +1682,69 @@ function editClear(){
 }
 
 function generateAppsScript(){
-  const title = (document.getElementById('edTitle').value || '故事情境解謎闖關').trim();
+  const title = (document.getElementById('edTitle').value || '故事情境闖關').trim();
   const desc = (document.getElementById('edDesc').value || '跟著故事一步步解開謎題吧！').trim();
   const pages = state.editor.pages;
   if(!pages.length){toast('還沒新增任何章節');return}
 
-  // Validate
+  const qtype = state.questionType || 'storyMystery';
+  const tmpl = QTYPES[qtype] || QTYPES.storyMystery;
+  const isQuiz = !['characterAnalysis','moralDilemma','imagination'].includes(qtype);
+
+  // 驗證
   const issues = [];
+  const needsOptions = ['storyMystery','reading','vocabMatch','trueFalse'].includes(qtype);
   pages.forEach((p, i) => {
-    if(!p.title) issues.push('第 '+(i+1)+' 頁沒標題');
-    if(!p.question) issues.push('第 '+(i+1)+' 頁沒題目');
-    const validOpts = (p.options||[]).filter(o => o.trim());
-    if(validOpts.length < 2) issues.push('第 '+(i+1)+' 頁選項不足 2 個');
+    if(!p.title) issues.push('第 '+(i+1)+' 章沒標題');
+    if(qtype !== 'imagination' && !p.question) issues.push('第 '+(i+1)+' 章沒題目');
+    if(needsOptions){
+      const validOpts = (p.options||[]).filter(o => o.trim());
+      if(validOpts.length < 2) issues.push('第 '+(i+1)+' 章選項不足');
+    }
   });
   if(issues.length){
     if(!confirm('注意以下問題：\n\n• '+issues.join('\n• ')+'\n\n還是要產生程式碼嗎？')) return;
   }
 
-  const pagesData = pages.map(p => ({
-    title: p.title || '未命名章節',
-    story: p.story || '',
-    image: p.imageUrl || '',
-    question: p.question || '請選擇',
-    options: (p.options||['','','','']).filter(o => o.trim()),
-    correct: Math.min(p.correct||0, (p.options||[]).filter(o=>o.trim()).length - 1),
-  }));
+  // 組裝每一頁的 Apps Script 區塊
+  let pageBlocks = '';
+  pages.forEach((p, i) => {
+    pageBlocks += `
+  // === 第 ${i+1} 章：${(p.title||'').replace(/\*\//g,'*\\/')} ===
+  form.addPageBreakItem()
+      .setTitle(${JSON.stringify(p.title||('第 '+(i+1)+' 章'))})
+      .setHelpText(${JSON.stringify(p.story||'')});`;
+    if(p.imageUrl){
+      pageBlocks += `
+  try {
+    const blob_${i} = UrlFetchApp.fetch(${JSON.stringify(p.imageUrl)}).getBlob();
+    form.addImageItem().setImage(blob_${i}).setTitle(${JSON.stringify(p.title||'插圖')});
+  } catch (e) {
+    Logger.log('⚠️ 第 ${i+1} 章圖片抓取失敗：' + e.message);
+    Logger.log('  → 檢查 Doc 共用權限是否「知道連結的任何人 - 檢視者」');
+  }`;
+    }
+    const itemCode = tmpl.addItem(p);
+    if(itemCode) pageBlocks += '\n' + itemCode;
+  });
 
   const code = `/**
  * 由「繪本 → Google 表單 一條龍工作坊」自動生成
- * 操作：到 https://script.google.com/home → 新建專案 → 貼上 → 儲存 → 執行 buildForm
- * 第一次會要授權，看「執行紀錄」拿表單網址
+ * 題型：${tmpl.label}（${tmpl.age}）
+ * 用法：到 https://script.google.com/home → 新建專案 → 貼上 → 儲存 → 執行 buildForm
+ *      第一次會要授權，看「執行紀錄」拿表單網址
  */
 function buildForm() {
-  const form = FormApp.create('${escapeJsString(title)}');
-  form.setDescription('${escapeJsString(desc)}');
-  form.setIsQuiz(true);
+  const form = FormApp.create(${JSON.stringify(title)});
+  form.setDescription(${JSON.stringify(desc)});
+  form.setIsQuiz(${isQuiz});
   form.setCollectEmail(true);
+${pageBlocks}
 
-  const pages = ${JSON.stringify(pagesData, null, 2)};
-
-  pages.forEach(function(p, i) {
-    form.addPageBreakItem().setTitle(p.title).setHelpText(p.story);
-
-    if (p.image) {
-      try {
-        const blob = UrlFetchApp.fetch(p.image).getBlob();
-        form.addImageItem().setImage(blob).setTitle(p.title);
-      } catch (e) {
-        Logger.log('⚠️ 第 ' + (i+1) + ' 頁圖片抓取失敗：' + p.image);
-        Logger.log('  錯誤：' + e.message);
-        Logger.log('  → 檢查 Doc 共用權限是否設成「知道連結的任何人 - 檢視者」');
-      }
-    }
-
-    if (p.options && p.options.length >= 2) {
-      const q = form.addMultipleChoiceItem();
-      q.setTitle(p.question).setPoints(1).setRequired(true);
-      q.setChoices(p.options.map(function(opt, idx) {
-        return q.createChoice(opt, idx === p.correct);
-      }));
-    }
-  });
-
+  // 結尾頁
   form.addPageBreakItem()
-      .setTitle('🎉 恭喜通關！')
-      .setHelpText('你成功幫助主角解開所有謎題！按下方「提交」記錄你的成績。');
+      .setTitle(${isQuiz ? "'🎉 恭喜通關！'" : "'🎉 完成囉！'"})
+      .setHelpText('感謝你的作答，按下方「提交」儲存。');
 
   Logger.log('═══════════════════════════');
   Logger.log('📝 填表網址（給學生）：');

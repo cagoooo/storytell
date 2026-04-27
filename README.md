@@ -74,8 +74,8 @@ storytell/
 
 - ✅ **v0.1.0** 六步驟工作坊 + 加碼 TTS / NotebookLM
 - ✅ **v0.2.0** 視覺化編輯器 + QR Code + Cloudflare Workers 代理
-- 🔜 **v0.3.0** 多專案管理、題型範本、Web Speech TTS 試聽
-- 🔜 **v0.4.0** PWA / 離線 / 匯入匯出
+- ✅ **v0.3.0** 多繪本管理 + 7 種題型範本 + Web Speech TTS 試聽 + CSP 安全性 audit
+- 🔜 **v0.4.0** PWA / 離線 / 拖曳排序圖片
 - 🔜 **v1.0.0** 公開發布、Gemini API 直連
 
 ## 🎓 為誰做的
