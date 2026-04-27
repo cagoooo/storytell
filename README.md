@@ -81,7 +81,8 @@ storytell/
 - ✅ **v0.3.0** 多繪本管理 + 7 種題型範本 + Web Speech TTS 試聽 + CSP 安全性 audit
 - ✅ **v0.4.0** PWA / 離線可用 / 安裝到桌面 / 拖曳排序 / 命名圖片 / 深色模式 / 自動更新檢查
 - ✅ **v0.5.0** Gemini API 直連（BYOK）+ 整本一鍵生成 + 五種單章 AI 動作
-- 🔜 **v0.6.0** 學生答題分析儀表板 + Apps Script API 自動部署
+- ✅ **v0.6.0** 🎨 Gemini Image 直接生圖 + 整本順便生圖 + Apps Script 內嵌 base64
+- 🔜 **v0.7.0** 學生答題分析儀表板 + NotebookLM 一鍵接
 - 🔜 **v1.0.0** 公開發布
 
 ## 🎓 為誰做的

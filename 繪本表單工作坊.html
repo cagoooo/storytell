@@ -272,6 +272,13 @@
   .ai-mini.busy::before{content:'⏳ ';animation:spin 1s linear infinite;display:inline-block}
   @keyframes spin{to{transform:rotate(360deg)}}
 
+  .ai-img-toggle{display:flex;align-items:center;gap:8px;padding:10px 12px;background:rgba(251,191,36,.15);border:1.5px dashed #fbbf24;border-radius:8px;margin:10px 0;font-size:13px;cursor:pointer;user-select:none}
+  body.dark .ai-img-toggle{background:rgba(251,191,36,.08)}
+  .ai-img-toggle input{accent-color:var(--accent-2);width:18px;height:18px;cursor:pointer;flex-shrink:0}
+  .ai-img-toggle .badge{font-size:11px;background:#fbbf24;color:#78350f;padding:2px 8px;border-radius:999px;font-weight:700}
+  .ai-mini.gen-img{background:linear-gradient(135deg,#fbbf24,#f97316)}
+  .ai-mini.gen-img:hover{box-shadow:0 4px 10px rgba(251,146,60,.5)}
+
   .ai-loading{display:flex;align-items:center;gap:10px;padding:12px;background:var(--soft);border-radius:8px;margin:8px 0;font-size:13px}
   .ai-loading .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);animation:bounce 1.4s infinite ease-in-out}
   .ai-loading .dot:nth-child(2){animation-delay:.2s}
@@ -390,7 +397,7 @@
   <header>
     <h1>📚 繪本 → Google 表單 一條龍工作坊</h1>
     <p>把 Gemini 畫的繪本，變成有圖片、有解謎、可發音的 Google 表單測驗</p>
-    <span class="tag">v0.5 · 🤖 Gemini AI · PWA · 多繪本 · 7 題型 · 深色模式</span>
+    <span class="tag">v0.6 · 🎨 AI 生圖 · 🤖 整本生成 · PWA · 7 題型</span>
   </header>
 
   <div class="proj-bar">
@@ -426,11 +433,19 @@
           <input type="password" id="geminiKey" placeholder="AIzaSy..." autocomplete="off" />
         </div>
         <div>
-          <label>使用模型</label>
+          <label>文字模型（生故事 / 出題）</label>
           <select id="geminiModel">
             <option value="gemini-2.5-flash">gemini-2.5-flash（推薦・快又免費）</option>
             <option value="gemini-2.5-pro">gemini-2.5-pro（高品質・每日 50 次）</option>
             <option value="gemini-2.5-flash-lite">gemini-2.5-flash-lite（最快）</option>
+          </select>
+        </div>
+        <div style="grid-column:1/-1">
+          <label>🎨 圖像模型（生繪本插圖）</label>
+          <select id="geminiImageModel">
+            <option value="gemini-2.5-flash-image-preview">gemini-2.5-flash-image-preview（推薦・Nano Banana）</option>
+            <option value="gemini-2.5-flash-image">gemini-2.5-flash-image（正式版）</option>
+            <option value="gemini-2.0-flash-preview-image-generation">gemini-2.0-flash-preview-image-generation（舊版備援）</option>
           </select>
         </div>
       </div>
@@ -651,6 +666,11 @@
               <input type="text" id="aiExtra" placeholder="例：背景設在森林、加入一隻小狗、每章結尾留懸念" />
             </div>
           </div>
+          <label class="ai-img-toggle">
+            <input type="checkbox" id="aiAlsoImages">
+            <span>🖼 <strong>順便為每章生圖</strong>（用 Gemini Image 模型）</span>
+            <span class="badge">+15 秒/章</span>
+          </label>
           <div class="btn-row">
             <button class="btn green" id="btn-aiGenBook" style="font-size:14px;padding:10px 18px">✨ 開始生成</button>
             <span style="font-size:12px;color:var(--sub);align-self:center">用題型 = 上方選的題型</span>
@@ -1025,6 +1045,15 @@ function init(){
       sel.appendChild(opt);
     }
     sel.value = meta.geminiModel;
+  }
+  if(meta.geminiImageModel){
+    const sel = document.getElementById('geminiImageModel');
+    if(![...sel.options].some(o => o.value === meta.geminiImageModel)){
+      const opt = document.createElement('option');
+      opt.value = meta.geminiImageModel; opt.textContent = meta.geminiImageModel;
+      sel.appendChild(opt);
+    }
+    sel.value = meta.geminiImageModel;
   }
   updateAIStatus();
   if(state.formUrl) document.getElementById('formUrl').value = state.formUrl;
@@ -1867,6 +1896,7 @@ function buildEditorRow(p, i){
         <button class="ai-mini" data-ai="rewrite">✨ 換個寫法</button>
         <button class="ai-mini" data-ai="question">✨ 出題目</button>
         <button class="ai-mini" data-ai="imagePrompt">✨ 圖像提示詞</button>
+        <button class="ai-mini gen-img" data-ai="generateImage">🖼 直接生圖</button>
       </div>
     </div>
   `;
@@ -2002,7 +2032,25 @@ function generateAppsScript(){
       .setTitle(${JSON.stringify(p.title||('第 '+(i+1)+' 章'))})
       .setHelpText(${JSON.stringify(p.story||'')});`;
     if(p.imageUrl){
-      pageBlocks += `
+      if(p.imageUrl.startsWith('data:')){
+        // AI 生成 / 內嵌的 base64 圖：用 Utilities.newBlob，不用 fetch
+        const m = p.imageUrl.match(/^data:([^;]+);base64,(.+)$/);
+        if(m){
+          const mime = m[1];
+          const b64 = m[2];
+          pageBlocks += `
+  try {
+    // 第 ${i+1} 章圖（AI 生成、內嵌 base64，不需網路）
+    const b64_${i} = ${JSON.stringify(b64)};
+    const blob_${i} = Utilities.newBlob(Utilities.base64Decode(b64_${i}), ${JSON.stringify(mime)}, 'page-${i+1}');
+    form.addImageItem().setImage(blob_${i}).setTitle(${JSON.stringify(p.title||'插圖')});
+  } catch (e) {
+    Logger.log('⚠️ 第 ${i+1} 章內嵌圖片插入失敗：' + e.message);
+  }`;
+        }
+      } else {
+        // 一般 https URL（步驟 3 抓回來的 / 老師自貼）
+        pageBlocks += `
   try {
     const blob_${i} = UrlFetchApp.fetch(${JSON.stringify(p.imageUrl)}).getBlob();
     form.addImageItem().setImage(blob_${i}).setTitle(${JSON.stringify(p.title||'插圖')});
@@ -2010,6 +2058,7 @@ function generateAppsScript(){
     Logger.log('⚠️ 第 ${i+1} 章圖片抓取失敗：' + e.message);
     Logger.log('  → 檢查 Doc 共用權限是否「知道連結的任何人 - 檢視者」');
   }`;
+      }
     }
     const itemCode = tmpl.addItem(p);
     if(itemCode) pageBlocks += '\n' + itemCode;
@@ -2166,6 +2215,91 @@ async function geminiCallJson(prompt){
   catch(e) { throw new Error('Gemini 回的不是合法 JSON：\n' + cleaned.slice(0,300)); }
 }
 
+// ============ Gemini Image (Imagen / Nano Banana) ============
+async function geminiGenerateImage(prompt){
+  const key = (meta.geminiKey || '').trim();
+  if(!key) throw new Error('還沒設定 Gemini API Key');
+  const model = meta.geminiImageModel || 'gemini-2.5-flash-image-preview';
+  const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) + ':generateContent';
+
+  const body = {
+    contents: [{ parts: [{ text: prompt }] }],
+    generationConfig: {
+      responseModalities: ['TEXT', 'IMAGE'],
+    },
+  };
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
+    body: JSON.stringify(body),
+  });
+  if(!res.ok){
+    const errText = await res.text();
+    let msg = 'HTTP ' + res.status;
+    try {
+      const j = JSON.parse(errText);
+      msg += ' · ' + (j.error?.message || errText);
+      if(/not found|deprecated|not supported/i.test(j.error?.message||'')){
+        msg += '\n\n💡 試試按「🔍 偵測可用模型」找看看支援的圖像模型';
+      }
+      if(/quota|exceeded|429/i.test(j.error?.message||'') || res.status === 429){
+        msg += '\n\n💡 圖像生成免費額度有限，等一下或改成付費層';
+      }
+    } catch(e){ msg += ' · ' + errText.slice(0,200); }
+    throw new Error(msg);
+  }
+  const data = await res.json();
+  const parts = data.candidates?.[0]?.content?.parts || [];
+  const imgPart = parts.find(p => p.inlineData);
+  if(!imgPart){
+    const reason = data.candidates?.[0]?.finishReason;
+    if(reason === 'SAFETY') throw new Error('圖像被安全過濾擋下，試試更柔軟的描述（避免恐怖、暴力、寫實人臉）');
+    throw new Error('沒回任何圖像（finishReason: ' + reason + '）');
+  }
+  const mime = imgPart.inlineData.mimeType || 'image/png';
+  const dataUrl = 'data:' + mime + ';base64,' + imgPart.inlineData.data;
+  // 壓縮節省 localStorage
+  return await compressImage(dataUrl, 800, 0.78);
+}
+
+// 把任意圖（http URL 或 data URL）resize + 重壓 JPEG
+async function compressImage(src, maxDim, quality){
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      let w = img.naturalWidth, h = img.naturalHeight;
+      if(w > maxDim || h > maxDim){
+        const r = w > h ? maxDim / w : maxDim / h;
+        w = Math.round(w * r);
+        h = Math.round(h * r);
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, w, h);
+      ctx.drawImage(img, 0, 0, w, h);
+      try {
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      } catch(e){
+        // 跨域圖污染畫布 → 退回原圖
+        resolve(src);
+      }
+    };
+    img.onerror = () => reject(new Error('圖像載入失敗'));
+    img.src = src;
+  });
+}
+
+// 估算 localStorage 用量（粗略）
+function estimateStorageMB(){
+  try {
+    return (JSON.stringify(meta).length / 1024 / 1024).toFixed(2);
+  } catch(e){ return '?'; }
+}
+
 async function listGeminiModels(){
   const key = (meta.geminiKey || '').trim();
   if(!key) throw new Error('還沒設定 API Key');
@@ -2199,11 +2333,13 @@ function aiBusy(btn, on){
 function saveGeminiKey(){
   const k = document.getElementById('geminiKey').value.trim();
   const m = document.getElementById('geminiModel').value;
+  const im = document.getElementById('geminiImageModel').value;
   if(k && !/^[A-Za-z0-9_\-]{30,}$/.test(k)) {
     if(!confirm('這串看起來不太像 Gemini key（一般是 39 字元、開頭 AIzaSy）。仍要儲存嗎？')) return;
   }
   meta.geminiKey = k;
   meta.geminiModel = m;
+  meta.geminiImageModel = im;
   save();
   updateAIStatus();
   toast(k ? '✓ 已儲存 API Key（只在這台電腦的瀏覽器）' : '已清除 API Key');
@@ -2350,8 +2486,40 @@ JSON Schema（必須完全照這個結構）：
     document.getElementById('edTitle').value = state.editor.title;
     document.getElementById('edDesc').value = state.editor.desc;
     renderEditor();
-    status.innerHTML = '<div style="color:var(--green);font-size:13px;padding:10px">✓ 完成！產出 ' + data.pages.length + ' 個章節（標題：「' + (data.title||theme) + '」）。<br>下一步：到步驟 3 抓圖、回來這裡選圖、然後產 Apps Script。</div>';
-    toast('🎉 整本繪本生成完畢！');
+
+    // ✨ Phase 2：可選的順便生圖
+    const alsoImages = document.getElementById('aiAlsoImages').checked;
+    if(alsoImages){
+      const total = state.editor.pages.length;
+      const failures = [];
+      for(let i = 0; i < total; i++){
+        const p = state.editor.pages[i];
+        status.innerHTML = '<div class="ai-loading"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div>🎨 生圖中 ' + (i+1) + '/' + total + ' · 第 ' + (i+1) + ' 章「' + (p.title||'') + '」</div></div>';
+        try {
+          const prompt = p.imagePrompt || ("Children's book illustration, warm friendly style: " + p.title + '. ' + (p.story||''));
+          p.imageUrl = await geminiGenerateImage(prompt);
+          save();
+          renderEditor();
+        } catch(e){
+          console.warn('第 ' + (i+1) + ' 章生圖失敗:', e.message);
+          failures.push((i+1) + '：' + e.message.split('\n')[0].slice(0,60));
+        }
+        // 簡單防 rate limit
+        await new Promise(r => setTimeout(r, 800));
+      }
+      const okCount = total - failures.length;
+      const sizeMB = estimateStorageMB();
+      let html = '<div style="color:var(--green);font-size:13px;padding:10px">✓ 完成！產出 ' + total + ' 章 + ' + okCount + ' 張圖（用了約 ' + sizeMB + ' MB localStorage）。';
+      if(failures.length){
+        html += '<br><br><strong style="color:#dc2626">⚠ 失敗的章節 (' + failures.length + '/' + total + ')：</strong><br>' + failures.join('<br>') + '<br>可以在每章按「🖼 直接生圖」單獨重試。';
+      }
+      html += '</div>';
+      status.innerHTML = html;
+      toast(failures.length ? '⚠ 部分章節生圖失敗' : '🎉 整本含圖搞定！');
+    } else {
+      status.innerHTML = '<div style="color:var(--green);font-size:13px;padding:10px">✓ 完成！產出 ' + data.pages.length + ' 個章節。<br>下一步：勾選「🖼 順便生圖」重跑、用每章「🖼 直接生圖」按鈕、或到步驟 3 抓 Google Doc 的圖。</div>';
+      toast('🎉 整本繪本生成完畢！');
+    }
   } catch(e){
     status.innerHTML = '<div class="warn">✗ ' + e.message + '</div>';
   } finally {
@@ -2422,6 +2590,21 @@ async function aiRowAction(pageIndex, action, btn){
       renderEditor();
       // 直接複製到剪貼簿，老師可以馬上拿去 Gemini 生圖
       copyText(en, '✓ 圖像提示詞已生成並複製');
+
+    } else if(action === 'generateImage'){
+      // 用既有 imagePrompt，沒有就現場用故事生
+      let prompt = p.imagePrompt;
+      if(!prompt){
+        const ctx = [p.title, p.story].filter(Boolean).join('. ');
+        if(!ctx){ toast('這章沒內容可生圖'); return; }
+        prompt = "Children's book illustration, warm and friendly style: " + ctx;
+      }
+      toast('🎨 生圖中…約 10-20 秒');
+      const dataUrl = await geminiGenerateImage(prompt);
+      p.imageUrl = dataUrl;
+      save();
+      renderEditor();
+      toast('✓ 圖片完成！已填到本章 imageUrl');
 
     }
   } catch(e){

@@ -1,5 +1,5 @@
 {
-  "version": "v0.5.0",
+  "version": "v0.6.0",
   "buildTime": "2026-04-27",
-  "notes": "🤖 Gemini AI 整合：BYOK 設定面板 + ListModels 自動偵測 + 整本一鍵生成 + 五個單章 AI 動作（簡化/加長/改寫/出題/圖像提示詞）"
+  "notes": "🎨 Gemini Image (Nano Banana) 直接生圖：每章一鍵生圖 / 整本順便生圖。產出 base64 直接內嵌進 Apps Script，不用上傳 Drive。"
 }
