@@ -62,9 +62,13 @@ python -m http.server 5500 --bind 127.0.0.1
 storytell/
 ├── index.html              # 入口（轉址到主 App）
 ├── 繪本表單工作坊.html    # 主 App（單檔）
+├── manifest.json           # PWA 設定檔（可安裝到桌面）
+├── service-worker.js       # PWA 離線快取（network-first）
+├── version.json            # 版本號（用來偵測新版自動更新）
+├── icon.svg                # App 圖示
+├── icon-maskable.svg       # Android maskable icon
 ├── worker.js               # Cloudflare Workers CORS 代理
 ├── 進度表.md              # 開發 roadmap / 已知問題 / 未來規劃
-├── 圖片網址轉換器.html    # 原 picconvert 頁面備份（參考用）
 └── README.md
 ```
 
@@ -75,7 +79,8 @@ storytell/
 - ✅ **v0.1.0** 六步驟工作坊 + 加碼 TTS / NotebookLM
 - ✅ **v0.2.0** 視覺化編輯器 + QR Code + Cloudflare Workers 代理
 - ✅ **v0.3.0** 多繪本管理 + 7 種題型範本 + Web Speech TTS 試聽 + CSP 安全性 audit
-- 🔜 **v0.4.0** PWA / 離線 / 拖曳排序圖片
+- ✅ **v0.4.0** PWA / 離線可用 / 安裝到桌面 / 拖曳排序 / 命名圖片 / 深色模式 / 自動更新檢查
+- 🔜 **v0.5.0** 列印派發單優化 + 學生答題分析儀表板
 - 🔜 **v1.0.0** 公開發布、Gemini API 直連
 
 ## 🎓 為誰做的

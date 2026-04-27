@@ -1,0 +1,28 @@
+{
+  "name": "繪本 → Google 表單 一條龍工作坊",
+  "short_name": "繪本表單",
+  "description": "把 Gemini 畫的繪本變成有圖、有解謎、可發音的 Google 表單測驗。國小老師專用。",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#fef7f0",
+  "theme_color": "#7c3aed",
+  "lang": "zh-Hant-TW",
+  "dir": "ltr",
+  "categories": ["education", "productivity"],
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

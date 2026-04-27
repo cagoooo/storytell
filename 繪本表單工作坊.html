@@ -3,13 +3,21 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta http-equiv="Content-Security-Policy" content="default-src 'self' https:; img-src 'self' https: data: blob:; connect-src 'self' https:; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src https://fonts.gstatic.com; frame-ancestors 'none'; base-uri 'self'" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' https:; img-src 'self' https: data: blob:; connect-src 'self' https:; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src https://fonts.gstatic.com; manifest-src 'self'; worker-src 'self'; frame-ancestors 'none'; base-uri 'self'" />
 <meta name="referrer" content="strict-origin-when-cross-origin" />
 <title>繪本 → Google 表單 一條龍工作坊</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="apple-touch-icon" href="icon.svg">
+<meta name="theme-color" content="#7c3aed">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="繪本表單">
+<meta name="mobile-web-app-capable" content="yes">
 <style>
   :root{
     --bg:#fef7f0;
@@ -21,7 +29,49 @@
     --green:#10b981;
     --line:#ece7f2;
     --soft:#faf5ff;
+    --input-bg:#fafafa;
+    --thumb-bg:#f9fafb;
+    --code-bg:#1e1b2e;
+    --code-fg:#e9d5ff;
   }
+  body.dark{
+    --bg:#15102a;
+    --card:#241b3d;
+    --ink:#f3f0ff;
+    --sub:#a39bbf;
+    --accent:#a78bfa;
+    --accent-2:#fb923c;
+    --green:#34d399;
+    --line:#3b2f55;
+    --soft:#2a1f48;
+    --input-bg:#1c1535;
+    --thumb-bg:#1c1535;
+    --code-bg:#0f0a1e;
+    --code-fg:#e9d5ff;
+  }
+  body.dark input,body.dark textarea,body.dark select{color:var(--ink)}
+  body.dark .ed-row{background:var(--card)}
+  body.dark .ed-thumb{background:var(--thumb-bg)}
+  body.dark .url-output{background:var(--input-bg)}
+  body.dark .url-item{background:var(--card);color:var(--ink)}
+  body.dark .url-item .u{color:var(--ink)}
+  body.dark .editor-box{background:var(--soft);border-color:#4a3a6a}
+  body.dark .qtype-bar{background:var(--soft);border-color:#4a3a6a}
+  body.dark .qr-box{background:var(--card);border-color:#5a4a2a}
+  body.dark .step-body p{color:#d4ccea}
+  body.dark .step-body code{background:#3b2964;color:#e9d5ff}
+  body.dark .ed-empty{background:var(--card);border-color:#4a3a6a}
+  body.dark .step.done{background:#1a3a2a;border-color:#10b981}
+  body.dark .ed-row-head button{background:#3b2964;color:#d4ccea}
+  body.dark .ed-row-head button:hover{background:#4a3a6a}
+  body.dark .checkbox{background:var(--card)}
+  body.dark .btn.ghost{background:var(--card)}
+  body.dark .btn.gray{background:#3b2964;color:var(--ink)}
+  body.dark .copy-btn{background:rgba(255,255,255,.18)}
+  body.dark .tts-btn{background:#0f3a25;border-color:#10b981;color:#a7f3d0}
+  body.dark .tts-btn:hover{background:#155a3a}
+  body.dark .proj-bar{box-shadow:0 4px 14px rgba(0,0,0,.3)}
+  body.dark .proj-btns button{background:var(--card);color:var(--ink)}
   *{box-sizing:border-box}
   html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans TC","Segoe UI",system-ui,sans-serif}
   body{padding:20px 14px 100px;line-height:1.65}
@@ -192,6 +242,24 @@
   details summary{cursor:pointer;color:var(--accent);font-weight:600;padding:6px 0;font-size:14px}
   details[open] summary{margin-bottom:8px}
 
+  /* ===== Update Banner ===== */
+  .update-banner{position:fixed;top:0;left:0;right:0;background:linear-gradient(135deg,#10b981,#3b82f6);color:white;padding:12px 16px;text-align:center;font-size:14px;z-index:2000;display:none;box-shadow:0 4px 14px rgba(0,0,0,.2)}
+  .update-banner.show{display:block;animation:slideDown .3s ease}
+  .update-banner button{background:white;color:#10b981;border:none;padding:6px 14px;border-radius:6px;font-weight:bold;margin-left:10px;cursor:pointer;font-family:inherit}
+  .update-banner .dismiss{background:transparent;color:white;border:1px solid rgba(255,255,255,.4)}
+  @keyframes slideDown{from{transform:translateY(-100%)}to{transform:translateY(0)}}
+
+  /* ===== Image Item (with drag/label/delete) ===== */
+  .url-item .ui-handle{cursor:grab;color:var(--sub);padding:0 6px;font-size:18px;user-select:none}
+  .url-item .ui-handle:hover{color:var(--accent)}
+  .url-item .ui-handle:active{cursor:grabbing}
+  .url-item.sortable-ghost{opacity:.4;background:var(--soft)}
+  .url-item.sortable-chosen{box-shadow:0 4px 14px rgba(124,58,237,.25);border-radius:6px}
+  .url-item .ui-label{flex:1;font-size:12px;padding:4px 8px;border:1px solid var(--line);border-radius:6px;background:var(--input-bg);min-width:80px;max-width:140px;font-family:inherit}
+  .url-item .ui-label:focus{outline:none;border-color:var(--accent);background:var(--card)}
+  .url-item .ui-del{background:#fee2e2;color:#dc2626;border:none;width:28px;height:28px;border-radius:6px;cursor:pointer;font-weight:bold;flex-shrink:0;font-size:13px}
+  .url-item .ui-del:hover{background:#fca5a5}
+
   /* ===== Project Bar ===== */
   .proj-bar{background:var(--card);border-radius:14px;padding:12px 14px;margin:14px 0;box-shadow:0 4px 14px rgba(124,58,237,.08);border:1.5px solid var(--accent)}
   .proj-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -276,12 +344,17 @@
 </style>
 </head>
 <body>
+<div class="update-banner" id="updateBanner">
+  🆕 有新版可用！
+  <button id="btn-applyUpdate">立即更新</button>
+  <button id="btn-dismissUpdate" class="dismiss">稍後</button>
+</div>
 <div class="wrap">
 
   <header>
     <h1>📚 繪本 → Google 表單 一條龍工作坊</h1>
     <p>把 Gemini 畫的繪本，變成有圖片、有解謎、可發音的 Google 表單測驗</p>
-    <span class="tag">v0.3 · 多繪本 · 7 種題型 · TTS · QR · 自架代理</span>
+    <span class="tag">v0.4 · PWA · 拖曳排序 · 深色模式 · 多繪本 · 7 題型</span>
   </header>
 
   <div class="proj-bar">
@@ -678,6 +751,8 @@
       <button class="btn green" id="btn-markAll">✓ 全部勾選</button>
       <button class="btn gray" id="btn-resetProgress">🔄 重設進度</button>
       <button class="btn ghost" id="btn-print">🖨 列印步驟</button>
+      <button class="btn ghost" id="btn-darkMode">🌙 深色</button>
+      <button class="btn ghost" id="btn-installPWA" style="display:none">📲 安裝到桌面</button>
     </div>
     <div style="margin-top:12px;font-size:12px;color:var(--sub)">
       進度自動儲存在這台電腦上 · 換瀏覽器或裝置會重新開始
@@ -734,6 +809,7 @@ function newProjectData(name){
     checks: {},
     urls: {},
     convertedUrls: [],
+    imageLabels: {},
     editor: { title:'', desc:'', pages:[] },
     formUrl: '',
     printTitle: '',
@@ -785,11 +861,13 @@ function loadAll(){
 
   state = meta.projects.find(p => p.id === meta.currentId);
   // 確保所有欄位齊全（萬一是舊資料缺欄）
+  meta.theme = meta.theme || 'light';
   state.checks = state.checks || {};
   state.urls = state.urls || {};
   state.editor = state.editor || { title:'', desc:'', pages:[] };
   state.editor.pages = state.editor.pages || [];
   state.convertedUrls = state.convertedUrls || [];
+  state.imageLabels = state.imageLabels || {};
   state.questionType = state.questionType || 'storyMystery';
 }
 
@@ -922,6 +1000,12 @@ function wireUI(){
   on('btn-markAll', 'click', markAll);
   on('btn-resetProgress', 'click', resetProgress);
   on('btn-print', 'click', () => window.print());
+  on('btn-darkMode', 'click', toggleDarkMode);
+  on('btn-installPWA', 'click', tryInstall);
+
+  // Update banner
+  on('btn-applyUpdate', 'click', applyUpdate);
+  on('btn-dismissUpdate', 'click', () => document.getElementById('updateBanner').classList.remove('show'));
 }
 
 function on(id, ev, fn){
@@ -1492,29 +1576,88 @@ async function testWorker(){
   }
 }
 
-// ============ 重新渲染已抓取的圖片清單 ============
+// ============ 重新渲染已抓取的圖片清單（含拖曳排序、命名、刪除）============
+let _sortable = null;
 function renderConvertedUrls(){
   const out = document.getElementById('urlOutput');
   if(!convertedUrls.length){
     out.innerHTML = '<div class="empty">這裡會顯示轉換出來的圖片網址</div>';
     document.getElementById('urlActions').style.display = 'none';
+    if(_sortable){ try{ _sortable.destroy() }catch(e){} _sortable = null; }
     return;
   }
   out.innerHTML = '';
-  convertedUrls.forEach((u,idx)=>{
-    const item = document.createElement('div');
-    item.className = 'url-item';
-    const safeU = u.replace(/'/g,"\\'");
-    item.innerHTML = `
-      <img src="${u}" loading="lazy">
-      <div class="u">${idx+1}. ${u}</div>
-      <button>複製</button>
-    `;
-    item.querySelector('img').addEventListener('error', e => e.target.style.opacity = .3);
-    item.querySelector('button').addEventListener('click', () => copyText(u, '已複製第'+(idx+1)+'張'));
-    out.appendChild(item);
+  convertedUrls.forEach((u, idx) => {
+    out.appendChild(buildUrlItem(u, idx));
   });
   document.getElementById('urlActions').style.display = '';
+
+  // 啟用拖曳排序
+  if(_sortable){ try{ _sortable.destroy() }catch(e){} _sortable = null; }
+  if(typeof Sortable !== 'undefined'){
+    _sortable = Sortable.create(out, {
+      handle: '.ui-handle',
+      animation: 150,
+      ghostClass: 'sortable-ghost',
+      chosenClass: 'sortable-chosen',
+      onEnd: () => {
+        const newOrder = [...out.querySelectorAll('.url-item')].map(el => el.dataset.url);
+        if(newOrder.length === convertedUrls.length){
+          convertedUrls = newOrder;
+          state.convertedUrls = convertedUrls;
+          save();
+          renderEditor();  // 圖片下拉重新生成（保持選擇但順序更新）
+          // 重新編號 label
+          renderConvertedUrls();
+          toast('✓ 已重新排序');
+        }
+      }
+    });
+  }
+}
+
+function buildUrlItem(u, idx){
+  const item = document.createElement('div');
+  item.className = 'url-item';
+  item.dataset.url = u;
+  const label = state.imageLabels[u] || ('圖片 ' + (idx+1));
+  item.innerHTML = `
+    <span class="ui-handle" title="拖曳排序">≡</span>
+    <img loading="lazy">
+    <input class="ui-label" maxlength="20" placeholder="圖片 ${idx+1}">
+    <div class="u" style="flex:1;font-size:11px;color:#6b7280;font-family:Consolas,monospace;word-break:break-all">${u}</div>
+    <button title="複製網址">複製</button>
+    <button class="ui-del" title="刪除">✕</button>
+  `;
+  const img = item.querySelector('img');
+  img.src = u;
+  img.addEventListener('error', () => { img.style.opacity = .3; });
+
+  const labelInp = item.querySelector('.ui-label');
+  labelInp.value = label;
+  labelInp.addEventListener('input', e => {
+    const v = e.target.value.trim();
+    if(v && v !== ('圖片 ' + (idx+1))) state.imageLabels[u] = v;
+    else delete state.imageLabels[u];
+    save();
+    // 即時更新編輯器下拉
+    renderEditor();
+  });
+
+  const btns = item.querySelectorAll('button');
+  btns[0].addEventListener('click', () => copyText(u, '已複製：' + label));
+  btns[1].addEventListener('click', () => {
+    if(!confirm('刪除「' + label + '」？')) return;
+    convertedUrls = convertedUrls.filter(x => x !== u);
+    state.convertedUrls = convertedUrls;
+    delete state.imageLabels[u];
+    save();
+    renderConvertedUrls();
+    renderEditor();
+    toast('已刪除');
+  });
+
+  return item;
 }
 
 // ============ 視覺化 Apps Script 編輯器 ============
@@ -1542,10 +1685,11 @@ function buildEditorRow(p, i){
   row.dataset.i = i;
   const opts = p.options || ['','','',''];
 
-  // Build image dropdown options
+  // Build image dropdown options（顯示標籤）
   let imgOptionsHtml = '<option value="">— 選擇圖片 —</option>';
   convertedUrls.forEach((u, idx) => {
-    imgOptionsHtml += `<option value="${escapeHtml(u)}" ${u===p.imageUrl?'selected':''}>圖片 ${idx+1}</option>`;
+    const lbl = state.imageLabels[u] || ('圖片 ' + (idx+1));
+    imgOptionsHtml += `<option value="${escapeHtml(u)}" ${u===p.imageUrl?'selected':''}>${escapeHtml(lbl)}</option>`;
   });
   // Allow custom URL too
   imgOptionsHtml += `<option value="__custom__" ${p.imageUrl && !convertedUrls.includes(p.imageUrl)?'selected':''}>✏️ 自訂網址…</option>`;
@@ -1827,8 +1971,119 @@ function printSheet(){
   });
 }
 
+// ============ 深色模式 ============
+function applyTheme(){
+  document.body.classList.toggle('dark', meta.theme === 'dark');
+  const btn = document.getElementById('btn-darkMode');
+  if(btn) btn.textContent = meta.theme === 'dark' ? '☀️ 淺色' : '🌙 深色';
+  const themeMeta = document.querySelector('meta[name="theme-color"]');
+  if(themeMeta) themeMeta.setAttribute('content', meta.theme === 'dark' ? '#15102a' : '#7c3aed');
+}
+function toggleDarkMode(){
+  meta.theme = meta.theme === 'dark' ? 'light' : 'dark';
+  save();
+  applyTheme();
+  toast(meta.theme === 'dark' ? '🌙 深色模式' : '☀️ 淺色模式');
+}
+
+// ============ PWA Service Worker ============
+function registerSW(){
+  if(!('serviceWorker' in navigator)) return;
+  // file:// 協定的 SW 不能註冊，跳過避免錯誤訊息
+  if(location.protocol === 'file:') return;
+  navigator.serviceWorker.register('service-worker.js')
+    .then(reg => {
+      console.log('[storytell] SW registered:', reg.scope);
+      // 偵測新版
+      reg.addEventListener('updatefound', () => {
+        const sw = reg.installing;
+        if(!sw) return;
+        sw.addEventListener('statechange', () => {
+          if(sw.state === 'installed' && navigator.serviceWorker.controller){
+            // 已有舊版在跑，新版裝好了
+            showUpdateBanner();
+          }
+        });
+      });
+    })
+    .catch(err => console.warn('[storytell] SW registration failed:', err));
+
+  // 接收 controller 變更（新 SW 接管後）
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if(refreshing) return;
+    refreshing = true;
+    location.reload();
+  });
+}
+
+let _knownVersion = null;
+async function checkForUpdates(){
+  if(location.protocol === 'file:') return;
+  try {
+    const res = await fetch('version.json?t=' + Date.now(), { cache: 'no-store' });
+    if(!res.ok) return;
+    const data = await res.json();
+    if(!_knownVersion){ _knownVersion = data.version; return; }
+    if(data.version !== _knownVersion){
+      console.log('[storytell] New version detected:', data.version);
+      showUpdateBanner();
+    }
+  } catch(e) { /* offline */ }
+}
+
+function showUpdateBanner(){
+  const b = document.getElementById('updateBanner');
+  if(b) b.classList.add('show');
+}
+
+async function applyUpdate(){
+  toast('🔄 載入新版中…');
+  try {
+    if('serviceWorker' in navigator){
+      const reg = await navigator.serviceWorker.getRegistration();
+      if(reg && reg.waiting){
+        reg.waiting.postMessage('SKIP_WAITING');
+        // controllerchange 會觸發 reload
+        return;
+      }
+      // 沒有 waiting？手動清快取
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k => caches.delete(k)));
+    }
+  } catch(e){}
+  location.reload();
+}
+
+// ============ PWA 安裝（Chrome / Edge）============
+let _installPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  _installPrompt = e;
+  const btn = document.getElementById('btn-installPWA');
+  if(btn) btn.style.display = '';
+});
+async function tryInstall(){
+  if(!_installPrompt){
+    toast('💡 已安裝過或瀏覽器不支援。iPad/Safari 請用「分享 → 加入主畫面」');
+    return;
+  }
+  _installPrompt.prompt();
+  const { outcome } = await _installPrompt.userChoice;
+  toast(outcome === 'accepted' ? '✓ 已安裝到桌面！' : '取消安裝');
+  _installPrompt = null;
+  document.getElementById('btn-installPWA').style.display = 'none';
+}
+window.addEventListener('appinstalled', () => {
+  toast('🎉 已加到主畫面，下次點 icon 開啟即可');
+});
+
 // ============ Boot ============
 init();
+applyTheme();
+registerSW();
+checkForUpdates();
+setInterval(checkForUpdates, 30 * 60 * 1000); // 每 30 分鐘檢查一次新版
 </script>
 </body>
 </html>
