@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta http-equiv="Content-Security-Policy" content="default-src 'self' https:; img-src 'self' https: data: blob:; connect-src 'self' https:; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src https://fonts.gstatic.com; manifest-src 'self'; worker-src 'self'; frame-ancestors 'none'; base-uri 'self'" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' https:; img-src 'self' https: data: blob:; connect-src 'self' https:; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src https://fonts.gstatic.com; manifest-src 'self'; worker-src 'self'; base-uri 'self'" />
 <meta name="referrer" content="strict-origin-when-cross-origin" />
 <title>繪本 → Google 表單 一條龍工作坊</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1/build/qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/svg+xml" href="icon.svg">
@@ -414,7 +414,7 @@
   <header>
     <h1>📚 繪本 → Google 表單 一條龍工作坊</h1>
     <p>把 Gemini 畫的繪本，變成有圖片、有解謎、可發音的 Google 表單測驗</p>
-    <span class="tag">v0.6.2 · 🎨 AI 生圖 · 🤖 整本生成 · PWA · 7 題型</span>
+    <span class="tag">v0.6.3 · 🎨 AI 生圖 · 🤖 整本生成 · PWA · 7 題型</span>
   </header>
 
   <div class="welcome-card" id="welcomeCard" style="display:none">
@@ -457,10 +457,10 @@
         🔑 <strong>BYOK（Bring Your Own Key）</strong>：你貼自己的 Gemini API Key，<strong>只存在你的瀏覽器，永不離開這台電腦</strong>。
         免費 Key 拿這裡：<a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">Google AI Studio</a>（免費層 gemini-2.5-flash 每天 1500 次請求）
       </div>
-      <div class="ai-grid">
+      <form class="ai-grid" id="aiKeyForm" autocomplete="off" onsubmit="return false">
         <div>
-          <label>Gemini API Key</label>
-          <input type="password" id="geminiKey" placeholder="AIzaSy..." autocomplete="off" />
+          <label for="geminiKey">Gemini API Key</label>
+          <input type="password" id="geminiKey" name="geminiKey" placeholder="AIzaSy..." autocomplete="off" />
         </div>
         <div>
           <label>文字模型（生故事 / 出題）</label>
@@ -478,7 +478,7 @@
             <option value="gemini-2.0-flash-preview-image-generation">gemini-2.0-flash-preview-image-generation（舊版備援）</option>
           </select>
         </div>
-      </div>
+      </form>
       <div class="btn-row">
         <button class="btn small green" id="btn-saveGemini">💾 儲存</button>
         <button class="btn small ghost" id="btn-testGemini">🧪 測試連線</button>
@@ -1292,8 +1292,12 @@ async function convertImages(){
   document.getElementById('urlActions').style.display = 'none';
   setStatus('使用 corsproxy.io 抓取中…');
 
-  // Convert /pub to /embed (richer HTML with images inline)
-  const targetUrl = url.replace('/pub','/embed');
+  // Google Docs 不再支援 /embed（會回 404），用 /pub 直接抓
+  // 加上 ?embedded=true 拿到比較乾淨的 HTML（沒有 Google 工具列）
+  let targetUrl = url;
+  if(!/[?&]embedded=/.test(targetUrl)){
+    targetUrl += (targetUrl.includes('?') ? '&' : '?') + 'embedded=true';
+  }
   const customWorker = (meta.workerUrl || '').trim().replace(/\/$/, '');
   const proxies = [
     ...(customWorker ? [u => customWorker + '/?url=' + encodeURIComponent(u)] : []),
