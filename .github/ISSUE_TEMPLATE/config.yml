@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📖 5 分鐘上手指南
+    url: https://cagoooo.github.io/storytell/快速上手.html
+    about: 大部分問題在這份指南裡都有答案，先看一下
+  - name: 🌐 線上工具
+    url: https://cagoooo.github.io/storytell/
+    about: 直接打開工作坊

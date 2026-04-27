@@ -5,6 +5,10 @@
 
 🌐 **線上 Demo**：https://cagoooo.github.io/storytell/
 
+📖 **第一次用？** [5 分鐘上手指南](https://cagoooo.github.io/storytell/快速上手.html)
+
+🎒 **歡迎老師試用 v0.6** — 卡住或有想法請[開 issue](https://github.com/cagoooo/storytell/issues/new/choose) 給我，越多回饋 v0.7 做得越準。
+
 ---
 
 ## ✨ 這是什麼？

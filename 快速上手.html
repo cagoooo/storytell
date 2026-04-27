@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8">
+<title>5 分鐘上手｜繪本 → Google 表單 一條龍工作坊</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="老師 5 分鐘上手指南：用 Gemini AI 把主題變成有故事、有圖、有題目的 Google 表單測驗">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<meta name="theme-color" content="#7c3aed">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;font-family:"Noto Sans TC",system-ui,sans-serif;color:#2a1a3a;background:#fef7f0;line-height:1.7}
+  .wrap{max-width:780px;margin:0 auto;padding:20px 16px 60px}
+
+  header{background:linear-gradient(135deg,#7c3aed 0%,#ec4899 50%,#f97316 100%);color:white;border-radius:24px;padding:30px 26px;margin-bottom:20px;box-shadow:0 12px 32px rgba(124,58,237,.25);text-align:center;position:relative;overflow:hidden}
+  header::before{content:"";position:absolute;right:-30px;top:-30px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.12)}
+  header h1{margin:0;font-size:30px;font-weight:900;position:relative;letter-spacing:.5px}
+  header p{margin:8px 0 0;opacity:.95;font-size:15px;position:relative}
+  header .badge{display:inline-block;margin-top:12px;background:rgba(255,255,255,.22);padding:5px 14px;border-radius:999px;font-size:13px;backdrop-filter:blur(6px);position:relative}
+
+  .why{background:white;border-radius:18px;padding:22px 26px;margin-bottom:20px;box-shadow:0 4px 14px rgba(0,0,0,.04)}
+  .why h2{margin:0 0 12px;font-size:18px;color:#7c3aed}
+  .why ul{margin:0;padding-left:22px}
+  .why li{margin:6px 0}
+
+  .step{background:white;border-radius:18px;padding:22px 26px;margin-bottom:16px;box-shadow:0 4px 14px rgba(0,0,0,.04);position:relative;overflow:hidden;page-break-inside:avoid}
+  .step::before{content:"";position:absolute;left:0;top:0;bottom:0;width:6px;background:linear-gradient(180deg,#7c3aed,#ec4899)}
+  .step-head{display:flex;align-items:center;gap:14px;margin-bottom:10px}
+  .step-num{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#ec4899);color:white;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px;flex-shrink:0;box-shadow:0 4px 12px rgba(124,58,237,.3)}
+  .step h3{margin:0;font-size:18px;flex:1}
+  .step .time{font-size:12px;color:#6b5b7c;background:#faf5ff;padding:3px 10px;border-radius:999px}
+  .step p{margin:6px 0;color:#3b2a4d}
+  .step .action{background:#faf5ff;border-left:4px solid #7c3aed;padding:10px 14px;border-radius:6px;margin:10px 0;font-size:14px}
+  .step code{background:#f4ecff;color:#5b21b6;padding:2px 8px;border-radius:5px;font-size:13px;font-family:Consolas,Menlo,monospace}
+  .step ol{margin:6px 0;padding-left:22px}
+  .step ol li{margin:3px 0}
+  .step a{color:#7c3aed;font-weight:bold;text-decoration:underline}
+
+  .tips{background:linear-gradient(135deg,#fef3c7,#fde68a);border-radius:14px;padding:20px 24px;margin:20px 0;border-left:5px solid #f59e0b;page-break-inside:avoid}
+  .tips h3{margin:0 0 10px;font-size:16px;color:#78350f}
+  .tips ul{margin:0;padding-left:22px;color:#78350f}
+  .tips li{margin:5px 0}
+
+  .help{background:linear-gradient(135deg,#dbeafe,#e0e7ff);border-radius:14px;padding:20px 24px;margin:20px 0;border-left:5px solid #3b82f6;page-break-inside:avoid}
+  .help h3{margin:0 0 8px;font-size:16px;color:#1e3a8a}
+  .help p{margin:6px 0;color:#1e3a8a}
+  .help a{color:#1e3a8a;font-weight:bold}
+
+  .cta{background:linear-gradient(135deg,#7c3aed,#ec4899);color:white;border-radius:18px;padding:24px;text-align:center;margin-top:20px}
+  .cta h2{margin:0 0 8px;font-size:22px}
+  .cta a.btn{display:inline-block;background:white;color:#7c3aed;text-decoration:none;padding:14px 28px;border-radius:12px;font-weight:900;font-size:16px;margin-top:14px;box-shadow:0 6px 18px rgba(0,0,0,.18);transition:.15s}
+  .cta a.btn:hover{transform:translateY(-2px)}
+
+  footer{text-align:center;font-size:12px;color:#6b5b7c;margin-top:30px}
+  footer a{color:#7c3aed}
+
+  @media print {
+    body{background:white;font-size:11pt}
+    .wrap{max-width:none;padding:0}
+    header{box-shadow:none;color:white !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;page-break-after:avoid}
+    .step,.tips,.help,.cta,.why{box-shadow:none;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .no-print{display:none !important}
+    @page{size:A4;margin:1.2cm}
+  }
+  @media (max-width:600px){
+    header h1{font-size:22px}
+    .step{padding:18px 18px 18px 22px}
+    .step h3{font-size:16px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>📚 5 分鐘上手指南</h1>
+    <p>從零打造一份有圖、有故事、有題目的 Google 表單測驗</p>
+    <span class="badge">v0.6 · 含 Gemini AI 整本生成</span>
+  </header>
+
+  <section class="why">
+    <h2>✨ 它幫你做什麼？</h2>
+    <ul>
+      <li>用 AI 一鍵生<strong>整本繪本</strong>（故事 + 插圖 + 題目）</li>
+      <li>變成<strong>可掃 QR Code 的 Google 表單測驗</strong></li>
+      <li>學生答完，老師自動拿到回應</li>
+      <li>免裝程式，瀏覽器就能跑（手機/平板/電腦都行）</li>
+    </ul>
+  </section>
+
+  <article class="step">
+    <div class="step-head">
+      <div class="step-num">1</div>
+      <h3>拿一支免費 Gemini API Key</h3>
+      <span class="time">⏱ 30 秒</span>
+    </div>
+    <p>到 <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer">Google AI Studio</a>（用學校或個人 Google 帳號登入）→ 點「<strong>Get API key</strong>」→「<strong>Create API key</strong>」→ 複製那串 <code>AIzaSy...</code>。</p>
+    <div class="action">📋 複製整串 API Key 備用</div>
+  </article>
+
+  <article class="step">
+    <div class="step-head">
+      <div class="step-num">2</div>
+      <h3>把 Key 貼進工作坊</h3>
+      <span class="time">⏱ 30 秒</span>
+    </div>
+    <p>打開 <a href="https://cagoooo.github.io/storytell/" target="_blank" rel="noopener noreferrer">cagoooo.github.io/storytell</a>。頂部展開 <strong>🤖 Gemini AI 助手</strong>。</p>
+    <ol>
+      <li>把剛才複製的 API Key 貼到 <code>API Key</code> 欄位</li>
+      <li>按 <strong>💾 儲存</strong>（Key 只在你的瀏覽器，不會上傳）</li>
+      <li>按 <strong>🧪 測試連線</strong>，看到「✓ 連線正常」就行</li>
+    </ol>
+  </article>
+
+  <article class="step">
+    <div class="step-head">
+      <div class="step-num">3</div>
+      <h3>一鍵生整本繪本（含插圖）</h3>
+      <span class="time">⏱ 約 90 秒</span>
+    </div>
+    <p>捲到「步驟 5」展開 <strong>🪄 用 Gemini 一鍵生成整本繪本</strong>。</p>
+    <ol>
+      <li>主題填例如「<strong>勇氣</strong>」「<strong>友誼</strong>」「<strong>環保</strong>」</li>
+      <li>選年級（國小 1-6）、章節數（5 章剛好）</li>
+      <li>勾選 <strong>🖼 順便為每章生圖</strong> ← 用 AI 自動配插圖</li>
+      <li>按 <strong>✨ 開始生成</strong></li>
+    </ol>
+    <div class="action">⏳ 生故事 (10 秒) → 生圖 (5×15 秒) → 完成。每章故事 + 圖 + 題目都會自動填好。</div>
+  </article>
+
+  <article class="step">
+    <div class="step-head">
+      <div class="step-num">4</div>
+      <h3>產生 Google 表單程式碼</h3>
+      <span class="time">⏱ 30 秒</span>
+    </div>
+    <p>編輯器內檢查每章內容（不滿意可按 <strong>✨ 簡化故事</strong> / <strong>✨ 加長故事</strong> / <strong>✨ 換個寫法</strong> 微調）。</p>
+    <ol>
+      <li>按 <strong>⚡ 一鍵產生 Apps Script</strong></li>
+      <li>跳出黑色程式碼框 → 按 <strong>📋 複製程式碼</strong></li>
+    </ol>
+  </article>
+
+  <article class="step">
+    <div class="step-head">
+      <div class="step-num">5</div>
+      <h3>跑 Apps Script 變表單</h3>
+      <span class="time">⏱ 60 秒</span>
+    </div>
+    <ol>
+      <li>按 App 內 <strong>🚀 開啟 Apps Script</strong>（或到 <a href="https://script.google.com/home" target="_blank" rel="noopener noreferrer">script.google.com</a>）</li>
+      <li>「新增專案」→ 把剛才複製的程式碼貼上 → 按 <strong>儲存</strong>（💾 圖示）</li>
+      <li>選擇要執行的函式 <code>buildForm</code> → 按 <strong>執行</strong></li>
+      <li>第一次跳授權：選你的 Google 帳號 → 「進階」→「前往（不安全）」→ 允許</li>
+      <li>下方「執行紀錄」會印出 <strong>填表網址</strong> ← 這就是學生用的表單連結！</li>
+    </ol>
+  </article>
+
+  <article class="step">
+    <div class="step-head">
+      <div class="step-num">6</div>
+      <h3>印 QR Code 派發給學生</h3>
+      <span class="time">⏱ 30 秒</span>
+    </div>
+    <ol>
+      <li>回到 App 步驟 6，把上面拿到的<strong>填表網址</strong>貼進去</li>
+      <li>填班級 / 老師姓名（會印在派發單上）</li>
+      <li>按 <strong>🖨 列印 A4 派發單</strong> → 印出來貼班級公布欄 / 發給學生</li>
+      <li>學生用手機掃 QR → 跟著故事答題 → 完成提交</li>
+    </ol>
+    <div class="action">🎉 老師可在 Google 表單的「回應」分頁查看每個學生的作答</div>
+  </article>
+
+  <section class="tips">
+    <h3>💡 加分技巧（看到這裡你已經會用了）</h3>
+    <ul>
+      <li><strong>多本繪本</strong>：頂部 📚 下拉切換 — 每本獨立進度，互不影響</li>
+      <li><strong>7 種題型</strong>：步驟 5 上方下拉「🎯 題型範本」可換成是非題、閱讀理解、看圖說故事...</li>
+      <li><strong>離線可用</strong>：footer 按 <strong>📲 安裝到桌面</strong> → 變獨立 App，斷網也能編輯</li>
+      <li><strong>iPad 加入主畫面</strong>：Safari 開網址 → 分享 ⬆ → 加入主畫面</li>
+      <li><strong>深色模式</strong>：footer 點 🌙 → 晚上備課護眼</li>
+      <li><strong>不想用 AI 生圖</strong>：自己用 Gemini 圖文生繪本 → 貼 Google Doc → 步驟 3 抓圖</li>
+      <li><strong>免費額度</strong>：gemini-2.5-flash 每天 1500 次請求，老師日常用永遠免費</li>
+    </ul>
+  </section>
+
+  <section class="help">
+    <h3>🐛 卡住了？回報問題</h3>
+    <p>在 GitHub 開 issue，附上你卡的步驟截圖：</p>
+    <p>👉 <a href="https://github.com/cagoooo/storytell/issues/new/choose" target="_blank" rel="noopener noreferrer">github.com/cagoooo/storytell/issues</a></p>
+    <p>或在 LINE 群組丟訊息給我。</p>
+  </section>
+
+  <section class="cta no-print">
+    <h2>👍 準備好了？</h2>
+    <p>關掉這頁，打開工作坊開始做：</p>
+    <a class="btn" href="https://cagoooo.github.io/storytell/">🚀 進入工作坊</a>
+  </section>
+
+  <footer>
+    📚 繪本 → Google 表單 一條龍工作坊　·　v0.6.0　·　Made with 💜 for Taiwanese teachers<br>
+    GitHub：<a href="https://github.com/cagoooo/storytell" target="_blank" rel="noopener noreferrer">github.com/cagoooo/storytell</a>　·
+    線上版：<a href="https://cagoooo.github.io/storytell/">cagoooo.github.io/storytell</a>
+  </footer>
+
+</div>
+</body>
+</html>
