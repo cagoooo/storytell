@@ -1,5 +1,5 @@
 {
-  "version": "v0.6.5",
+  "version": "v0.6.6",
   "buildTime": "2026-04-27",
-  "notes": "🎯 v0.6.5：根本解 — 改寫圖片擷取邏輯，優先讀 <img alt=...> 裡的 lh*.googleusercontent URL（可跨域）。原本抓到 24 張破一半，現在拿到 12 張全可用。docs-images-rt 變最後 fallback。"
+  "notes": "🧹 v0.6.6：清理 v0.6.4 時代殘留在 localStorage 的 docs-images-rt URL（一直噴 console 錯誤）。載入時自動 filter，讓重整後 console 全綠。"
 }

@@ -426,7 +426,7 @@
   <header>
     <h1>📚 繪本 → Google 表單 一條龍工作坊</h1>
     <p>把 Gemini 畫的繪本，變成有圖片、有解謎、可發音的 Google 表單測驗</p>
-    <span class="tag">v0.6.5 · 🎨 AI 生圖 · 🤖 整本生成 · PWA · 7 題型</span>
+    <span class="tag">v0.6.6 · 🎨 AI 生圖 · 🤖 整本生成 · PWA · 7 題型</span>
   </header>
 
   <div class="welcome-card" id="welcomeCard" style="display:none">
@@ -1036,6 +1036,18 @@ function loadAll(){
   }
 
   state = meta.projects.find(p => p.id === meta.currentId);
+  // v0.6.5+ 清理舊資料：docs-images-rt URL 被 Google CORP 擋，無論如何都用不到，
+  // 從每個 project 的 convertedUrls / imageLabels 裡移除（避免一直噴 console 錯誤）
+  meta.projects.forEach(p => {
+    if(Array.isArray(p.convertedUrls)){
+      p.convertedUrls = p.convertedUrls.filter(u => typeof u === 'string' && !u.includes('docs.google.com/docs-images-rt'));
+    }
+    if(p.imageLabels && typeof p.imageLabels === 'object'){
+      Object.keys(p.imageLabels).forEach(u => {
+        if(u.includes('docs.google.com/docs-images-rt')) delete p.imageLabels[u];
+      });
+    }
+  });
   // 確保所有欄位齊全（萬一是舊資料缺欄）
   meta.theme = meta.theme || 'light';
   state.checks = state.checks || {};
