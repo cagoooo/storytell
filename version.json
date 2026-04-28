@@ -1,5 +1,5 @@
 {
-  "version": "v0.6.3",
+  "version": "v0.6.4",
   "buildTime": "2026-04-27",
-  "notes": "🐛 v0.6.3 Bug 修：QRCode CDN 路徑修正 + Google Doc /pub（/embed 已被 Google 廢） + 移除 meta 不支援的 frame-ancestors + Password input 包進 form"
+  "notes": "🐛 v0.6.4：修跨域受限圖片（CORP 擋 docs.google.com/docs-images-rt）— 新按鈕「📥 修復 N 張跨域受限圖」自動透過代理下載 + 壓縮 + 嵌入 base64"
 }

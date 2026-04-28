@@ -309,6 +309,18 @@
   .update-banner .dismiss{background:transparent;color:white;border:1px solid rgba(255,255,255,.4)}
   @keyframes slideDown{from{transform:translateY(-100%)}to{transform:translateY(0)}}
 
+  /* CORS-blocked image marker（Google /docs-images-rt 等跨域受限的圖）*/
+  .url-item.cors-blocked img{background:#fee2e2;opacity:.6}
+  body.dark .url-item.cors-blocked img{background:#4c1d24}
+  .url-item.cors-blocked .u{color:#b91c1c}
+  body.dark .url-item.cors-blocked .u{color:#fca5a5}
+  .url-item.cors-blocked .ui-label{border-color:#fca5a5}
+  .url-item.cors-blocked::after{content:'🔒';position:absolute;top:4px;left:4px;font-size:13px;background:#fee2e2;border-radius:4px;padding:1px 4px;border:1px solid #fca5a5}
+  .url-item{position:relative}
+  .btn-embed{background:linear-gradient(135deg,#fbbf24,#f97316);color:white;border:none;padding:9px 16px;border-radius:8px;font-weight:600;cursor:pointer;font-family:inherit;font-size:13px}
+  .btn-embed:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(251,146,60,.4)}
+  .btn-embed:disabled{opacity:.6;cursor:wait}
+
   /* ===== Image Item (with drag/label/delete) ===== */
   .url-item .ui-handle{cursor:grab;color:var(--sub);padding:0 6px;font-size:18px;user-select:none}
   .url-item .ui-handle:hover{color:var(--accent)}
@@ -414,7 +426,7 @@
   <header>
     <h1>📚 繪本 → Google 表單 一條龍工作坊</h1>
     <p>把 Gemini 畫的繪本，變成有圖片、有解謎、可發音的 Google 表單測驗</p>
-    <span class="tag">v0.6.3 · 🎨 AI 生圖 · 🤖 整本生成 · PWA · 7 題型</span>
+    <span class="tag">v0.6.4 · 🎨 AI 生圖 · 🤖 整本生成 · PWA · 7 題型</span>
   </header>
 
   <div class="welcome-card" id="welcomeCard" style="display:none">
@@ -567,6 +579,7 @@
       <div class="btn-row" id="urlActions" style="display:none">
         <button class="btn green" id="btn-copyAllUrls">📋 一鍵複製全部網址</button>
         <button class="btn ghost" id="btn-downloadUrls">⬇ 下載成 .txt</button>
+        <button class="btn-embed" id="btn-embedBlocked" style="display:none" title="這些圖被 Google 限定只能在 *.google.com 顯示（CORP），用 CORS 代理抓回來壓縮成 base64 內嵌"></button>
       </div>
 
       <details style="margin-top:14px">
@@ -1159,6 +1172,7 @@ function wireUI(){
   on('btn-useStep2Url', 'click', useStep2Url);
   on('btn-copyAllUrls', 'click', copyAllUrls);
   on('btn-downloadUrls', 'click', downloadUrls);
+  on('btn-embedBlocked', 'click', e => embedBlockedImages(e.currentTarget));
   on('btn-saveWorker', 'click', saveWorkerUrl);
   on('btn-testWorker', 'click', testWorker);
   on('btn-clearWorker', 'click', clearWorkerUrl);
@@ -1812,6 +1826,92 @@ async function testWorker(){
   }
 }
 
+// ============ CORS-blocked 圖片追蹤 + 修復 ============
+let _blockedUrls = new Set();
+
+function updateBlockedButton(){
+  const btn = document.getElementById('btn-embedBlocked');
+  if(!btn) return;
+  if(_blockedUrls.size > 0){
+    btn.style.display = '';
+    btn.textContent = '📥 修復 ' + _blockedUrls.size + ' 張跨域受限圖';
+  } else {
+    btn.style.display = 'none';
+  }
+}
+
+async function embedBlockedImages(btn){
+  if(!_blockedUrls.size){ toast('沒有需要修復的圖'); return; }
+  if(!confirm('將透過 CORS 代理下載 ' + _blockedUrls.size + ' 張跨域圖，壓縮後嵌入為 base64。\n\n預估 ' + (_blockedUrls.size * 4) + ' 秒，會增加 localStorage 用量。確定？')) return;
+
+  btn.disabled = true;
+  const customWorker = (meta.workerUrl || '').trim().replace(/\/$/, '');
+  const proxies = [
+    ...(customWorker ? [u => customWorker + '/?url=' + encodeURIComponent(u)] : []),
+    u => 'https://corsproxy.io/?' + encodeURIComponent(u),
+    u => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u),
+    u => 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(u),
+  ];
+
+  const failures = [];
+  const total = _blockedUrls.size;
+  const blockedList = [..._blockedUrls];
+  let done = 0;
+
+  for(const u of blockedList){
+    done++;
+    setStatus('🔄 修復中 ' + done + '/' + total + '…', 'var(--sub)');
+    let dataUrl = null;
+    for(const proxyFn of proxies){
+      try {
+        const res = await fetch(proxyFn(u));
+        if(!res.ok) continue;
+        const blob = await res.blob();
+        if(!blob || blob.size === 0) continue;
+        dataUrl = await new Promise((resolve, reject) => {
+          const r = new FileReader();
+          r.onload = () => resolve(r.result);
+          r.onerror = reject;
+          r.readAsDataURL(blob);
+        });
+        if(!dataUrl || !dataUrl.startsWith('data:image/')) { dataUrl = null; continue; }
+        try { dataUrl = await compressImage(dataUrl, 800, 0.78); } catch(e) {}
+        break;
+      } catch(e) { /* try next proxy */ }
+    }
+    if(dataUrl){
+      const idx = convertedUrls.indexOf(u);
+      if(idx >= 0){
+        const oldLabel = state.imageLabels[u];
+        convertedUrls[idx] = dataUrl;
+        if(oldLabel){
+          state.imageLabels[dataUrl] = oldLabel;
+          delete state.imageLabels[u];
+        }
+      }
+    } else {
+      failures.push(u);
+    }
+  }
+
+  state.convertedUrls = convertedUrls;
+  save();
+  _blockedUrls = new Set(failures);
+
+  renderConvertedUrls();
+  renderEditor();
+  btn.disabled = false;
+
+  const fixed = total - failures.length;
+  if(failures.length === 0){
+    setStatus('✓ 修復了 ' + total + ' 張圖（已嵌入 base64，可直接用）', 'var(--green)');
+    toast('🎉 全部 ' + total + ' 張修復完成');
+  } else {
+    setStatus('修復 ' + fixed + ' / ' + total + ' 張，' + failures.length + ' 張連代理也抓不回來', '#dc2626');
+    toast('⚠ ' + failures.length + ' 張仍失敗，可手動刪除');
+  }
+}
+
 // ============ 重新渲染已抓取的圖片清單（含拖曳排序、命名、刪除）============
 let _sortable = null;
 function renderConvertedUrls(){
@@ -1823,6 +1923,9 @@ function renderConvertedUrls(){
     return;
   }
   out.innerHTML = '';
+  // 重置 blocked tracking — onerror 會把當下這批失敗的重新加進來
+  _blockedUrls = new Set();
+  updateBlockedButton();
   convertedUrls.forEach((u, idx) => {
     out.appendChild(buildUrlItem(u, idx));
   });
@@ -1867,7 +1970,16 @@ function buildUrlItem(u, idx){
   `;
   const img = item.querySelector('img');
   img.src = u;
-  img.addEventListener('error', () => { img.style.opacity = .3; });
+  // data: URL 一定能顯示，跳過追蹤
+  if(!u.startsWith('data:')){
+    img.addEventListener('error', () => {
+      img.style.opacity = .3;
+      item.classList.add('cors-blocked');
+      item.title = '⚠ 跨域受限（Google 不允許在我們網域顯示）。按下方「修復」按鈕用 CORS 代理抓回來嵌入。';
+      _blockedUrls.add(u);
+      updateBlockedButton();
+    });
+  }
 
   const labelInp = item.querySelector('.ui-label');
   labelInp.value = label;
