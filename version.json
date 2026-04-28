@@ -1,5 +1,5 @@
 {
-  "version": "v0.6.4",
+  "version": "v0.6.5",
   "buildTime": "2026-04-27",
-  "notes": "🐛 v0.6.4：修跨域受限圖片（CORP 擋 docs.google.com/docs-images-rt）— 新按鈕「📥 修復 N 張跨域受限圖」自動透過代理下載 + 壓縮 + 嵌入 base64"
+  "notes": "🎯 v0.6.5：根本解 — 改寫圖片擷取邏輯，優先讀 <img alt=...> 裡的 lh*.googleusercontent URL（可跨域）。原本抓到 24 張破一半，現在拿到 12 張全可用。docs-images-rt 變最後 fallback。"
 }

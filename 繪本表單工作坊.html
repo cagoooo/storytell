@@ -426,7 +426,7 @@
   <header>
     <h1>📚 繪本 → Google 表單 一條龍工作坊</h1>
     <p>把 Gemini 畫的繪本，變成有圖片、有解謎、可發音的 Google 表單測驗</p>
-    <span class="tag">v0.6.4 · 🎨 AI 生圖 · 🤖 整本生成 · PWA · 7 題型</span>
+    <span class="tag">v0.6.5 · 🎨 AI 生圖 · 🤖 整本生成 · PWA · 7 題型</span>
   </header>
 
   <div class="welcome-card" id="welcomeCard" style="display:none">
@@ -1337,21 +1337,39 @@ async function convertImages(){
     return;
   }
 
-  // Extract image URLs
-  const urls = new Set();
-  // 1. img tags
-  const doc = new DOMParser().parseFromString(html,'text/html');
-  doc.querySelectorAll('img').forEach(img=>{
-    const src = img.getAttribute('src') || img.src;
-    if(src) tryAdd(src, urls);
-  });
-  // 2. regex in raw HTML
-  const r1 = /https:\/\/[a-zA-Z0-9-]+\.googleusercontent\.com\/[^"'\s><(),;\[\]]+/g;
-  const r2 = /https:\/\/docs\.google\.com\/docs-images-rt\/[^"'\s><(),;\[\]]+/g;
-  (html.match(r1)||[]).forEach(u=>tryAdd(u,urls));
-  (html.match(r2)||[]).forEach(u=>tryAdd(u,urls));
+  // Extract image URLs — 優先用可跨域的 lh*.googleusercontent，docs-images-rt 當最後 fallback
+  // Google Docs HTML 每張圖通常有 alt=lh3.googleusercontent + src=docs-images-rt 兩條 URL，
+  // 我們只取一條（lh3 可在 cagoooo.github.io 跨域顯示，docs-images-rt 會被 CORP 擋）
+  const goodUrls = new Set();
+  const badUrls = new Set();
+  const doc = new DOMParser().parseFromString(html, 'text/html');
 
-  convertedUrls = [...urls];
+  doc.querySelectorAll('img').forEach(img => {
+    const src = img.getAttribute('src') || img.src || '';
+    const alt = img.getAttribute('alt') || '';
+    const altIsGood = alt && /^https?:\/\/[a-z0-9-]+\.googleusercontent\.com/i.test(alt);
+    const srcIsGood = src.includes('googleusercontent.com');
+
+    if (altIsGood) tryAdd(alt, goodUrls);
+    if (srcIsGood) tryAdd(src, goodUrls);
+    // docs-images-rt 只在沒抓到任何 good URL 時才採用
+    if (!altIsGood && !srcIsGood && src.includes('docs.google.com/docs-images-rt')) {
+      tryAdd(src, badUrls);
+    }
+  });
+
+  // HTML 中可能還有 <img> 之外的 googleusercontent URL（例如背景、CSS）
+  const r1 = /https:\/\/[a-zA-Z0-9-]+\.googleusercontent\.com\/[^"'\s><(),;\[\]]+/g;
+  (html.match(r1) || []).forEach(u => tryAdd(u, goodUrls));
+
+  if (goodUrls.size > 0) {
+    convertedUrls = [...goodUrls];
+  } else if (badUrls.size > 0) {
+    convertedUrls = [...badUrls];
+    setStatus('⚠ 此 Doc 只找到舊格式圖片（CORP 擋住預覽，但仍列出，可試「修復」）', '#f59e0b');
+  } else {
+    convertedUrls = [];
+  }
 
   if(convertedUrls.length === 0){
     out.innerHTML = '<div class="empty" style="color:#dc2626">😕 沒抓到圖片。檢查：① Doc 真的有圖嗎？② 是否設成「知道連結的人 - 檢視者」？③ 改用 picconvert 試試</div>';
