@@ -1,0 +1,15 @@
+{
+  "name": "storytell-og-tools",
+  "version": "1.0.0",
+  "description": "OG image + favicon generator (build-time tools, not part of the deployed site)",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "subset-font": "node scripts/subset-font.mjs",
+    "gen-images": "node scripts/generate-images.mjs"
+  },
+  "devDependencies": {
+    "@napi-rs/canvas": "^0.1.55",
+    "subset-font": "^2.3.0"
+  }
+}

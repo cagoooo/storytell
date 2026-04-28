@@ -2,16 +2,21 @@
  * Storytell Workshop Service Worker
  * 策略：HTML network-first（永遠最新）；icon/font/CDN cache-first（離線可用）
  */
-const VERSION = 'v0.4.0';
+const VERSION = 'v0.6.7';
 const CACHE = 'storytell-' + VERSION;
 
 const PRECACHE = [
   './',
   './index.html',
   './繪本表單工作坊.html',
+  './快速上手.html',
   './manifest.json',
   './icon.svg',
   './icon-maskable.svg',
+  './favicon-32.png',
+  './favicon-192.png',
+  './apple-touch-icon.png',
+  './og-preview.png',
 ];
 
 self.addEventListener('install', (e) => {

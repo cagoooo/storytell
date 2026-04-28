@@ -1,5 +1,5 @@
 {
-  "version": "v0.6.6",
-  "buildTime": "2026-04-27",
-  "notes": "🧹 v0.6.6：清理 v0.6.4 時代殘留在 localStorage 的 docs-images-rt URL（一直噴 console 錯誤）。載入時自動 filter，讓重整後 console 全綠。"
+  "version": "v0.6.7",
+  "buildTime": "2026-04-28",
+  "notes": "🎨 v0.6.7：社群分享預覽圖 (OG image) + favicon 完整套件。LINE/FB/Twitter 分享卡有漂亮預覽，瀏覽器 tab 有書本圖示。"
 }

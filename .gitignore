@@ -15,3 +15,9 @@ dist/
 .env
 .env.local
 *.log
+
+# OG image 字型原始檔（11.4 MB，太大不 commit；精簡版 ~180KB 才 commit）
+scripts/fonts/NotoSansTC-Bold.ttf
+
+# 鎖定檔（這專案的 npm 是 build-time only）
+package-lock.json
