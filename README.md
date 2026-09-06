@@ -3,6 +3,8 @@
 > 把 Gemini 畫的繪本，輕鬆變成有圖片、有解謎、可發音的 Google 表單測驗。
 > 國小老師專用，零安裝、單檔網頁、離線可用。
 
+> 📌 **目前版本：v0.6.7**（依據 程式內版本常數）
+
 🌐 **線上 Demo**：https://cagoooo.github.io/storytell/
 
 📖 **第一次用？** [5 分鐘上手指南](https://cagoooo.github.io/storytell/快速上手.html)
