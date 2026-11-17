@@ -462,7 +462,7 @@
   <header>
     <h1>📚 繪本 → Google 表單 一條龍工作坊</h1>
     <p>把 Gemini 畫的繪本，變成有圖片、有解謎、可發音的 Google 表單測驗</p>
-    <span class="tag">v0.6.8 · 🎨 AI 生圖 · 🤖 整本生成 · PWA · 7 題型</span>
+    <span class="tag">v0.6.9 · 🎨 AI 生圖 · 🤖 整本生成 · PWA · 7 題型</span>
   </header>
 
   <div class="welcome-card" id="welcomeCard" style="display:none">
@@ -972,7 +972,7 @@
     <div class="footer-credit">
       <p class="site-credit">Made with <span class="site-credit__heart" aria-label="愛心">❤️</span> by
         <a href="https://cagoooo.github.io/Akai/" target="_blank" rel="noopener noreferrer" title="阿凱老師教育科技創新專區" class="site-credit__author">阿凱老師</a><span class="footer-school"><span class="footer-dot" aria-hidden="true">・</span>桃園市龍潭區石門國民小學</span></p>
-      <span class="version-pill">v0.6.8</span>
+      <span class="version-pill">v0.6.9</span>
     </div>
   </footer>
 </div>
@@ -2951,9 +2951,9 @@ async function applyUpdate(){
         // controllerchange 會觸發 reload
         return;
       }
-      // 沒有 waiting？手動清快取
+      // 沒有 waiting？手動清快取（只清本工具 storytell- 開頭的快取，不動同網域其他工具）
       const keys = await caches.keys();
-      await Promise.all(keys.map(k => caches.delete(k)));
+      await Promise.all(keys.filter(k => k.startsWith('storytell-')).map(k => caches.delete(k)));
     }
   } catch(e){}
   location.reload();

@@ -2,8 +2,9 @@
  * Storytell Workshop Service Worker
  * 策略：HTML network-first（永遠最新）；icon/font/CDN cache-first（離線可用）
  */
-const VERSION = 'v0.6.8';
-const CACHE = 'storytell-' + VERSION;
+const VERSION = 'v0.6.9';
+const CACHE_PREFIX = 'storytell-';
+const CACHE = CACHE_PREFIX + VERSION;
 
 const PRECACHE = [
   './',
@@ -35,7 +36,7 @@ self.addEventListener('activate', (e) => {
       .then((keys) =>
         Promise.all(
           keys
-            .filter((k) => k.startsWith('storytell-') && k !== CACHE)
+            .filter((k) => k.startsWith(CACHE_PREFIX) && k !== CACHE)
             .map((k) => caches.delete(k))
         )
       )
@@ -121,9 +122,10 @@ self.addEventListener('fetch', (e) => {
 });
 
 // 主程式可以叫 SW 立刻清快取（用在「重新整理到最新版」按鈕）
+// 只清本工具自己的快取（storytell- 開頭），同網域其他工具的快取不動
 self.addEventListener('message', (e) => {
   if (e.data === 'CLEAR_CACHE') {
-    caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k))));
+    caches.keys().then((keys) => Promise.all(keys.filter((k) => k.startsWith(CACHE_PREFIX)).map((k) => caches.delete(k))));
   }
   if (e.data === 'SKIP_WAITING') self.skipWaiting();
 });
