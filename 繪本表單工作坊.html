@@ -249,6 +249,22 @@
     border:1px solid var(--line);
   }
   footer .btn-row{justify-content:center;margin:0}
+  /* 頁尾署名列（2026-11-17 新增） */
+  .footer-credit{
+    display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 14px;
+    margin-top:14px;padding-top:12px;border-top:1px solid var(--line);
+    font-size:14px;color:var(--sub);text-align:left;
+  }
+  .footer-credit .site-credit{margin:0}
+  .site-credit__heart{display:inline-block;margin:0 2px}
+  .site-credit__author{color:var(--accent);font-weight:700;text-decoration:none;border-bottom:1px dotted currentColor;padding:2px 0}
+  .site-credit__author:hover{color:var(--accent-2)}
+  .version-pill{display:inline-block;padding:2px 10px;border-radius:999px;border:1px solid var(--line);background:var(--soft);color:var(--accent);font-size:12px;font-weight:700}
+  @media (max-width:600px){
+    .footer-credit{flex-direction:column;text-align:center}
+    .footer-school{display:block}
+    .footer-dot{display:none}
+  }
 
   /* Bonus divider */
   .divider{
@@ -446,7 +462,7 @@
   <header>
     <h1>📚 繪本 → Google 表單 一條龍工作坊</h1>
     <p>把 Gemini 畫的繪本，變成有圖片、有解謎、可發音的 Google 表單測驗</p>
-    <span class="tag">v0.6.7 · 🎨 AI 生圖 · 🤖 整本生成 · PWA · 7 題型</span>
+    <span class="tag">v0.6.8 · 🎨 AI 生圖 · 🤖 整本生成 · PWA · 7 題型</span>
   </header>
 
   <div class="welcome-card" id="welcomeCard" style="display:none">
@@ -952,6 +968,11 @@
     </div>
     <div style="margin-top:12px;font-size:12px;color:var(--sub)">
       進度自動儲存在這台電腦上 · 換瀏覽器或裝置會重新開始
+    </div>
+    <div class="footer-credit">
+      <p class="site-credit">Made with <span class="site-credit__heart" aria-label="愛心">❤️</span> by
+        <a href="https://cagoooo.github.io/Akai/" target="_blank" rel="noopener noreferrer" title="阿凱老師教育科技創新專區" class="site-credit__author">阿凱老師</a><span class="footer-school"><span class="footer-dot" aria-hidden="true">・</span>桃園市龍潭區石門國民小學</span></p>
+      <span class="version-pill">v0.6.8</span>
     </div>
   </footer>
 </div>

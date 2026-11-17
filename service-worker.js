@@ -2,7 +2,7 @@
  * Storytell Workshop Service Worker
  * 策略：HTML network-first（永遠最新）；icon/font/CDN cache-first（離線可用）
  */
-const VERSION = 'v0.6.7';
+const VERSION = 'v0.6.8';
 const CACHE = 'storytell-' + VERSION;
 
 const PRECACHE = [
